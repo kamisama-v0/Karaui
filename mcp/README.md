@@ -2,14 +2,14 @@
 
 Remote [MCP](https://modelcontextprotocol.io) server for the karaUI component registry, running on a Cloudflare Worker. It lets AI agents discover, inspect, and install karaUI components.
 
-It owns no data — it reads the live `karaui.dev/r/*` registry endpoints at runtime (edge-cached), so new components appear without redeploying the worker.
+It owns no data — it reads the live `karaui.kamisama-v0.my.id/r/*` registry endpoints at runtime (edge-cached), so new components appear without redeploying the worker.
 
 ## Connect
 
 Add to your MCP client (Claude Desktop, Cursor, etc.):
 
 ```
-https://mcp.karaui.dev/mcp
+https://mcp-karaui.kamisama-v0.my.id/mcp
 ```
 
 Streamable HTTP is recommended. An SSE endpoint (`/sse`) exists for legacy clients.
@@ -37,4 +37,4 @@ bun run typecheck
 bun run deploy
 ```
 
-Requires `karaui.dev` on Cloudflare. Wrangler provisions the `mcp.karaui.dev` custom domain on first deploy (see `routes` in `wrangler.jsonc`). To point at a different registry, set the `REGISTRY_URL` var.
+Requires `karaui.kamisama-v0.my.id` on Cloudflare. Wrangler provisions the `mcp-karaui.kamisama-v0.my.id` custom domain on first deploy (see `routes` in `wrangler.jsonc`). To point at a different registry, set the `REGISTRY_URL` var.

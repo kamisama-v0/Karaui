@@ -1,5 +1,5 @@
 // Thin typed client over the live karaUI registry endpoints. The MCP server owns
-// no data: it reads karaui.dev/r/* at runtime so new components appear without a
+// no data: it reads karaui.kamisama-v0.my.id/r/* at runtime so new components appear without a
 // worker redeploy. Responses are cached at the edge for a short TTL.
 
 export type IndexComponent = {
@@ -67,7 +67,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 function base(env: { REGISTRY_URL?: string }) {
-  return (env.REGISTRY_URL ?? "https://karaui.dev").replace(/\/$/, "");
+  return (env.REGISTRY_URL ?? "https://karaui.kamisama-v0.my.id").replace(/\/$/, "");
 }
 
 export function getIndex(env: { REGISTRY_URL?: string }) {

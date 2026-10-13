@@ -1,0 +1,33 @@
+# Per-app blue-green compose (docker-compose v1 compatible: mem_limit/cpus,
+# never deploy.resources). kamisama-deploy.sh fills APP, IMAGE_BLUE,
+# IMAGE_GREEN, BLUE_PORT and GREEN_PORT. The container always listens on 3000;
+# host nginx proxies FRONT to the live color, cloudflared proxies to nginx.
+services:
+  blue:
+    image: ${IMAGE_BLUE:?IMAGE_BLUE belum diset}
+    container_name: ${APP:?APP belum diset}-blue
+    restart: unless-stopped
+    ports:
+      - "${BLUE_PORT:?BLUE_PORT belum diset}:3000"
+    env_file:
+      - .env
+    networks:
+      - net
+    mem_limit: 512m
+    cpus: 1.0
+  green:
+    image: ${IMAGE_GREEN:?IMAGE_GREEN belum diset}
+    container_name: ${APP:?APP belum diset}-green
+    restart: unless-stopped
+    ports:
+      - "${GREEN_PORT:?GREEN_PORT belum diset}:3000"
+    env_file:
+      - .env
+    networks:
+      - net
+    mem_limit: 512m
+    cpus: 1.0
+
+networks:
+  net:
+    name: kamisama-${APP:?APP belum diset}

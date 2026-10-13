@@ -1,0 +1,13 @@
+# .env is deliberately NOT ignored: NEXT_PUBLIC_* values are inlined at build
+# time, so the CI-generated .env must reach `docker build`. Image stays local.
+node_modules
+.next
+.git
+.github
+mcp
+tests
+coverage
+*.tsbuildinfo
+*.log
+.DS_Store
+public/demo.gif

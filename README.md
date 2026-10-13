@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://karaui.dev">
+  <a href="https://karaui.kamisama-v0.my.id">
     <img src="./public/karaui-mark.png" alt="karaUI logo" width="88" height="88" />
   </a>
 </p>
@@ -18,15 +18,15 @@
 </p>
 
 <p align="center">
-  <a href="https://karaui.dev">Website</a>
+  <a href="https://karaui.kamisama-v0.my.id">Website</a>
   ·
-  <a href="https://karaui.dev/components/motion">Components</a>
+  <a href="https://karaui.kamisama-v0.my.id/components/motion">Components</a>
   ·
-  <a href="https://karaui.dev/llms.txt">llms.txt</a>
+  <a href="https://karaui.kamisama-v0.my.id/llms.txt">llms.txt</a>
 </p>
 
 <p align="center">
-  <a href="https://karaui.dev"><img src="./public/demo.gif" alt="karaUI components demo" width="640" /></a>
+  <a href="https://karaui.kamisama-v0.my.id"><img src="./public/demo.gif" alt="karaUI components demo" width="640" /></a>
 </p>
 
 ## What is karaUI?
@@ -46,7 +46,7 @@ npx shadcn@latest add @karaui/animated-toast-stack
 Direct URLs also work:
 
 ```bash
-npx shadcn@latest add https://karaui.dev/r/animated-toast-stack.json
+npx shadcn@latest add https://karaui.kamisama-v0.my.id/r/animated-toast-stack.json
 ```
 
 You can also copy the source directly from the component page.
@@ -56,11 +56,11 @@ You can also copy the source directly from the component page.
 karaUI exposes static endpoints that coding agents can read without scraping the UI.
 
 ```txt
-https://karaui.dev/llms.txt
-https://karaui.dev/r
-https://karaui.dev/r/{slug}
-https://karaui.dev/r/{slug}.json
-https://karaui.dev/r/{slug}/raw
+https://karaui.kamisama-v0.my.id/llms.txt
+https://karaui.kamisama-v0.my.id/r
+https://karaui.kamisama-v0.my.id/r/{slug}
+https://karaui.kamisama-v0.my.id/r/{slug}.json
+https://karaui.kamisama-v0.my.id/r/{slug}/raw
 ```
 
 Install the karaUI skill so Cursor, Claude Code and Codex pick existing `@karaui`

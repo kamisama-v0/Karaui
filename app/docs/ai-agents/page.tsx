@@ -57,33 +57,33 @@ const ENDPOINTS: { label: string; url: string; desc: string }[] = [
   },
 ];
 
-const MCP_URL = "https://mcp.karaui.dev/mcp";
+const MCP_URL = "https://mcp-karaui.kamisama-v0.my.id/mcp";
 
 const SKILL_SNIPPET = `npx skills add kamisama-v0/Karaui --skill karaui`;
 
 const MCP_CLI_SNIPPET = `# Claude Code
-claude mcp add --transport http karaui https://mcp.karaui.dev/mcp
+claude mcp add --transport http karaui https://mcp-karaui.kamisama-v0.my.id/mcp
 
 # Codex
-codex mcp add karaui --url https://mcp.karaui.dev/mcp
+codex mcp add karaui --url https://mcp-karaui.kamisama-v0.my.id/mcp
 
 # Amp
-amp mcp add karaui https://mcp.karaui.dev/mcp`;
+amp mcp add karaui https://mcp-karaui.kamisama-v0.my.id/mcp`;
 
 const MCP_MANUAL_SNIPPET = `{
   "mcpServers": {
     "karaui": {
       "type": "http",
-      "url": "https://mcp.karaui.dev/mcp"
+      "url": "https://mcp-karaui.kamisama-v0.my.id/mcp"
     }
   }
 }`;
 
 const FETCH_SNIPPET = `// 1. Discover what exists
-const idx = await fetch('https://karaui.dev/r').then((r) => r.json());
+const idx = await fetch('https://karaui.kamisama-v0.my.id/r').then((r) => r.json());
 
 // 2. Fetch a component
-const entry = await fetch(\`https://karaui.dev/r/\${slug}\`).then((r) => r.json());
+const entry = await fetch(\`https://karaui.kamisama-v0.my.id/r/\${slug}\`).then((r) => r.json());
 
 // 3. Write files into the user's project
 for (const file of entry.files) {
@@ -97,16 +97,16 @@ const SHADCN_SNIPPET = `# Official registry namespace (shadcn directory)
 npx shadcn@latest add @karaui/animated-toast-stack
 
 # Direct URL, no namespace needed
-npx shadcn@latest add https://karaui.dev/r/animated-toast-stack.json`;
+npx shadcn@latest add https://karaui.kamisama-v0.my.id/r/animated-toast-stack.json`;
 
 const ENTRY_SHAPE = `{
   "slug": "swap",
   "name": "Multi-chain Swap",
   "description": "Cross-chain swap widget with chain + token selectors, animated flip and quote.",
   "category": "motion",
-  "page_url": "https://karaui.dev/components/motion/swap",
-  "detail_url": "https://karaui.dev/r/swap",
-  "raw_url": "https://karaui.dev/r/swap/raw",
+  "page_url": "https://karaui.kamisama-v0.my.id/components/motion/swap",
+  "detail_url": "https://karaui.kamisama-v0.my.id/r/swap",
+  "raw_url": "https://karaui.kamisama-v0.my.id/r/swap/raw",
   "dependencies": ["motion", "lucide-react", "react"],
   "internal": ["@/lib/utils"],
   "files": [

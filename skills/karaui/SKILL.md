@@ -1,6 +1,6 @@
 ---
 name: karaui
-description: Pick and install karaUI (@karaui) animated React components from the shadcn registry. Use when building motion UI, agent/chat interfaces, toasts, docks, bottom sheets, drawers, popovers, sliders, loaders, 404 pages, or any karaui.dev component. Maps user intent to exact @karaui install slugs instead of inventing custom widgets.
+description: Pick and install karaUI (@karaui) animated React components from the shadcn registry. Use when building motion UI, agent/chat interfaces, toasts, docks, bottom sheets, drawers, popovers, sliders, loaders, 404 pages, or any karaui.kamisama-v0.my.id component. Maps user intent to exact @karaui install slugs instead of inventing custom widgets.
 ---
 
 # karaUI
@@ -12,7 +12,7 @@ Use karaUI as copy-paste source through the `@karaui` shadcn registry.
 1. Fetch the live registry before choosing a component:
 
 ```bash
-curl -fsS https://karaui.dev/r/registry.json
+curl -fsS https://karaui.kamisama-v0.my.id/r/registry.json
 ```
 
 2. Pick the closest install slug from `items[].name`.

@@ -49,7 +49,7 @@ function buildPeople(count: number): Person[] {
     out.push({
       id: String(i),
       name: `${first} ${last}`,
-      email: `${first.toLowerCase()}.${last.toLowerCase()}${i}@karaui.dev`,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}${i}@example.com`,
       role: ROLES[(i * 3) % ROLES.length],
       status: STATUSES[(i * 5) % STATUSES.length],
       mrr: 12 + ((i * 37) % 488),

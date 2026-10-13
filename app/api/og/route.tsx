@@ -14,7 +14,7 @@ const PAGE_CARDS = {
     description:
       "Register animated React components, generate OpenUI Lang, and render an interactive UI stream.",
     label: "Integration guide",
-    command: "karaui.dev/docs/openui",
+    command: "karaui.kamisama-v0.my.id/docs/openui",
   },
 } as const;
 

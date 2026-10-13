@@ -1,6 +1,6 @@
 # karaUI v2 — agent guide
 
-React motion component library plus its docs site, distributed as copy-paste source via shadcn-compatible registry endpoints. Stack: Next.js 16 (App Router), React 19, Tailwind CSS 4, motion (framer-motion) v11, TypeScript strict, Bun, Biome. Live at karaui.dev.
+React motion component library plus its docs site, distributed as copy-paste source via shadcn-compatible registry endpoints. Stack: Next.js 16 (App Router), React 19, Tailwind CSS 4, motion (framer-motion) v11, TypeScript strict, Bun, Biome. Live at karaui.kamisama-v0.my.id.
 
 ## Commands
 
@@ -21,7 +21,7 @@ Prefer `typecheck` + `lint` for quick verification. Do not start the dev server 
 - `components/previews/` — demo per component, registered in `components/previews/index.tsx`. Previews ship through the registry too. When an interactive preview uses internal demo helpers, set the registry entry's `usageFile` to a separate public composition so the Usage tab stays copyable.
 - `components/app/` — site chrome (header, hero, dock, code blocks). Not part of the library.
 - `lib/registry.ts` — component catalog (slugs, files, examples). Three categories: `motion` (display name "Components", primitives), `agents` (AI and agent interface primitives), and `blocks` (composed widgets: swap, dynamic island, command palette, expandable action bar). Blocks emit `registry:block` shadcn items. Preview files live under `components/previews/<category>/`. `lib/registry-server.ts` builds registry items by following each file's `@/` and relative imports and bundling everything it finds. Internal imports are therefore safe and encouraged; a component that imports `@/lib/ease` ships `lib/ease.ts` with it.
-- `app/r/*` — registry endpoints (shadcn items, raw source, index). karaUI is listed in shadcn's official registry directory as the `@karaui` namespace with URL template `https://karaui.dev/r/{name}.json` — that path shape and existing install slugs are public contract; never break or rename them.
+- `app/r/*` — registry endpoints (shadcn items, raw source, index). karaUI is listed in shadcn's official registry directory as the `@karaui` namespace with URL template `https://karaui.kamisama-v0.my.id/r/{name}.json` — that path shape and existing install slugs are public contract; never break or rename them.
 - `lib/ease.ts` — all motion tokens.
 - `scripts/check-registry.ts` — validates the catalog.
 

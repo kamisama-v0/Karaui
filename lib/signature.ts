@@ -5,7 +5,7 @@ const CODE_EXT = /\.(tsx?|jsx?|css|mjs|cjs)$/;
 // banner right after the directive when present, otherwise at the very top.
 const DIRECTIVE_RE = /^\s*(["']use (?:client|server)["'];?[^\n]*\n)/;
 
-/** Component docs page URL, e.g. https://karaui.dev/components/motion/tabs */
+/** Component docs page URL, e.g. https://karaui.kamisama-v0.my.id/components/motion/tabs */
 export function pageUrlFor(categorySlug: string, pageSlug: string) {
   return `${SITE_URL}/components/${categorySlug}/${pageSlug}`;
 }

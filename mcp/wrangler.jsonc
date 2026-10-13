@@ -6,13 +6,13 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": false },
   "vars": {
-    "REGISTRY_URL": "https://karaui.dev"
+    "REGISTRY_URL": "https://karaui.kamisama-v0.my.id"
   },
   "durable_objects": {
     "bindings": [{ "name": "KaraUiMcp", "class_name": "KaraUiMcp" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["KaraUiMcp"] }],
-  // Custom domain. Requires karaui.dev's zone on Cloudflare; wrangler provisions
-  // the mcp.karaui.dev DNS record on deploy.
-  "routes": [{ "pattern": "mcp.karaui.dev", "custom_domain": true }]
+  // Custom domain. Requires the kamisama-v0.my.id zone on Cloudflare; wrangler provisions
+  // the mcp-karaui.kamisama-v0.my.id DNS record on deploy.
+  "routes": [{ "pattern": "mcp-karaui.kamisama-v0.my.id", "custom_domain": true }]
 }

@@ -8,7 +8,7 @@ const ROOT = path.join(import.meta.dir, "..");
 const SKILL_PATH = path.join(ROOT, "skills/karaui/SKILL.md");
 const EVALS_PATH = path.join(ROOT, "skills/karaui/evals.json");
 const CATALOG_PATH = path.join(ROOT, "skills/karaui/catalog.md");
-const LIVE_REGISTRY = "https://karaui.dev/r/registry.json";
+const LIVE_REGISTRY = "https://karaui.kamisama-v0.my.id/r/registry.json";
 
 type SkillEvals = {
   skill_name: string;
@@ -52,14 +52,14 @@ describe("karaUI skill", () => {
   test("README documents a non-interactive skill install", async () => {
     const readme = await readFile(path.join(ROOT, "README.md"), "utf8");
     expect(readme).toContain("npx skills add kamisama-v0/Karaui --skill karaui");
-    expect(readme).not.toContain("npx skills add https://karaui.dev");
+    expect(readme).not.toContain("npx skills add https://karaui.kamisama-v0.my.id");
   });
 
   test("keeps the live registry as the source of truth", async () => {
     const skill = await readFile(SKILL_PATH, "utf8");
 
     expect(existsSync(CATALOG_PATH)).toBe(false);
-    expect(skill).toContain("curl -fsS https://karaui.dev/r/registry.json");
+    expect(skill).toContain("curl -fsS https://karaui.kamisama-v0.my.id/r/registry.json");
     expect(skill).toContain("items[].name");
     expect(skill).toContain("The live registry is the source of truth");
     expect(skill).not.toContain("!`curl");

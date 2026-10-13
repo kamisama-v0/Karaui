@@ -168,11 +168,11 @@ const LANDING = `karaUI MCP server
 Animated components for React and Next.js.
 
 Connect your MCP client to:
-  https://mcp.karaui.dev/mcp   (Streamable HTTP, recommended)
-  https://mcp.karaui.dev/sse   (SSE, legacy)
+  https://mcp-karaui.kamisama-v0.my.id/mcp   (Streamable HTTP, recommended)
+  https://mcp-karaui.kamisama-v0.my.id/sse   (SSE, legacy)
 
 Tools: list_components, search_components, get_component, get_install_command
-Docs:  https://karaui.dev
+Docs:  https://karaui.kamisama-v0.my.id
 `;
 
 export default {

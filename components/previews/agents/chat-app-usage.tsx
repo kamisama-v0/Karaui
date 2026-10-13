@@ -443,7 +443,7 @@ export function ChatAppExample({
                     { id: "reason", type: "text", content: "Tracing the checkout submission path and validation boundary." },
                     { id: "read", type: "tool", action: "read", target: "checkout/submit.ts" },
                     { id: "search", type: "search", query: "order validation failures", results: [
-                      { id: "result-1", title: "Validation contract", domain: "docs.karaui.dev", url: "/docs/validation" },
+                      { id: "result-1", title: "Validation contract", domain: "docs.example.com", url: "/docs/validation" },
                     ] },
                   ]}
                 />
@@ -569,19 +569,19 @@ export function ChatAppExample({
                           {
                             id: "message",
                             title: "Message composition",
-                            domain: "karaui.dev",
+                            domain: "karaui.kamisama-v0.my.id",
                             url: "/components/agents/message",
                           },
                           {
                             id: "diff",
                             title: "File Diff",
-                            domain: "karaui.dev",
+                            domain: "karaui.kamisama-v0.my.id",
                             url: "/components/agents/file-diff",
                           },
                           {
                             id: "approval",
                             title: "Tool Approval",
-                            domain: "karaui.dev",
+                            domain: "karaui.kamisama-v0.my.id",
                             url: "/components/agents/tool-approval",
                           },
                         ]}

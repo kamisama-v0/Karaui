@@ -1,10 +1,8 @@
 name: CI
 
+# Pushes to main are checked by deploy.yml before deploying.
 on:
   pull_request:
-  push:
-    branches:
-      - main
 
 jobs:
   check:
