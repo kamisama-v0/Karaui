@@ -23,6 +23,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # 2 CPU / 1.8 GB RAM box: cap the heap so the build leans on swap instead of
 # getting OOM-killed.
 ENV NODE_OPTIONS=--max-old-space-size=1536
+# One static-generation worker instead of one per CPU (see next.config.mjs).
+ENV NEXT_BUILD_CPUS=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN node node_modules/next/dist/bin/next build
