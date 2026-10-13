@@ -50,6 +50,7 @@ const COMPONENT_DATES = {
   "motion/wheel-picker": { publishedAt: "2026-07-09", updatedAt: "2026-07-09" },
   "motion/date-picker": { publishedAt: "2026-10-14", updatedAt: "2026-10-14" },
   "motion/stepper": { publishedAt: "2026-10-14", updatedAt: "2026-10-14" },
+  "motion/chart": { publishedAt: "2026-10-14", updatedAt: "2026-10-14" },
   "motion/table": { publishedAt: "2026-07-01", updatedAt: "2026-07-13" },
   "motion/shader-background": { publishedAt: "2026-07-02", updatedAt: "2026-07-13" },
   "motion/cylinder-carousel": { publishedAt: "2026-07-04", updatedAt: "2026-07-13" },

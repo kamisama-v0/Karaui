@@ -751,6 +751,67 @@ export const registry: CategoryEntry[] = [
         keywords: ["picker", "wheel picker", "ios picker", "drum picker", "spinner", "time picker", "date picker", "scroll picker"],
       },
       {
+        slug: "chart",
+        name: "Chart",
+        description:
+          "Animated SVG charts with a colorblind-validated palette (theme --chart-1…5): columns grow from the baseline, lines draw themselves in, donut slices sweep around the ring, and sparklines trace a trend for stat tiles. Hover or arrow keys read values in one tooltip per position; every chart ships a legend and a screen-reader table. Zero chart-library dependencies, reduced-motion safe.",
+        file: "components/motion/chart/bar-chart.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react chart",
+          "animated chart",
+          "bar chart react",
+          "line chart react",
+          "donut chart",
+          "sparkline",
+          "shadcn chart",
+          "dashboard chart",
+        ],
+        examples: [
+          {
+            slug: "bar",
+            name: "Bar Chart",
+            description:
+              "Grouped columns that grow from the baseline; the category band is the hover target and lists every series.",
+            installSlug: "chart-bar",
+            file: "components/motion/chart/bar-chart.tsx",
+            previewKey: "motion/chart-bar",
+            previewFile: "components/previews/motion/chart-bar.preview.tsx",
+          },
+          {
+            slug: "line",
+            name: "Line Chart",
+            description:
+              "2px lines that draw in, optional area fill for one series, and a crosshair that snaps to the nearest point.",
+            installSlug: "chart-line",
+            file: "components/motion/chart/line-chart.tsx",
+            previewKey: "motion/chart-line",
+            previewFile: "components/previews/motion/chart-line.preview.tsx",
+          },
+          {
+            slug: "donut",
+            name: "Donut Chart",
+            description:
+              "Share of a whole: slices sweep in and the center swaps from the total to the hovered slice's value and share.",
+            installSlug: "chart-donut",
+            file: "components/motion/chart/donut-chart.tsx",
+            previewKey: "motion/chart-donut",
+            previewFile: "components/previews/motion/chart-donut.preview.tsx",
+          },
+          {
+            slug: "sparkline",
+            name: "Sparkline",
+            description:
+              "Word-sized trend line for stat tiles that ends on the latest value, with a spoken summary.",
+            installSlug: "sparkline",
+            file: "components/motion/chart/sparkline.tsx",
+            previewKey: "motion/sparkline",
+            previewFile: "components/previews/motion/sparkline.preview.tsx",
+          },
+        ],
+      },
+      {
         slug: "stepper",
         name: "Stepper",
         description:

@@ -42,6 +42,13 @@ export const THEME_CSS = `@custom-variant dark (&:where(.dark, .dark *));
     --destructive: var(--danger);
     --input: var(--border);
     --ring: var(--border-strong);
+    /* Categorical chart series, in fixed order (shadcn --chart-* names).
+       Validated for CVD and normal-vision separation on --card. */
+    --chart-1: #2a78d6;
+    --chart-2: #eb6834;
+    --chart-3: #1baf7a;
+    --chart-4: #eda100;
+    --chart-5: #e87ba4;
 }
 
 .dark {
@@ -51,6 +58,11 @@ export const THEME_CSS = `@custom-variant dark (&:where(.dark, .dark *));
     --muted-foreground: oklch(62% 0 0);
     --border: rgb(255 255 255 / 0.05);
     --border-strong: rgb(255 255 255 / 0.1);
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-4: #c98500;
+    --chart-5: #d55181;
     --accent: oklch(80% 0.18 195);
     --accent-fg: #151515;
     --glass-bg: rgb(28 28 28 / 0.55);
@@ -66,6 +78,11 @@ export const THEME_CSS = `@custom-variant dark (&:where(.dark, .dark *));
 
     --color-border: var(--border);
     --color-border-strong: var(--border-strong);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
     --color-neon: var(--neon);
     --color-violet: var(--violet);
     --color-success: var(--success);

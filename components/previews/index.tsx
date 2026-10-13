@@ -454,6 +454,18 @@ export const previews: Record<string, ComponentType> = {
       (m) => m.CalendarRangePreview,
     ),
   ),
+  "motion/chart-bar": dynamic(() =>
+    import("./motion/chart-bar.preview").then((m) => m.ChartBarPreview),
+  ),
+  "motion/chart-line": dynamic(() =>
+    import("./motion/chart-line.preview").then((m) => m.ChartLinePreview),
+  ),
+  "motion/chart-donut": dynamic(() =>
+    import("./motion/chart-donut.preview").then((m) => m.ChartDonutPreview),
+  ),
+  "motion/sparkline": dynamic(() =>
+    import("./motion/sparkline.preview").then((m) => m.SparklinePreview),
+  ),
   "motion/stepper": dynamic(() =>
     import("./motion/stepper.preview").then((m) => m.StepperPreview),
   ),
