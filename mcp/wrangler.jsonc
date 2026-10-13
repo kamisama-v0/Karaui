@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "karaui-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": false },
+  "vars": {
+    "REGISTRY_URL": "https://karaui.dev"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "KaraUiMcp", "class_name": "KaraUiMcp" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["KaraUiMcp"] }],
+  // Custom domain. Requires karaui.dev's zone on Cloudflare; wrangler provisions
+  // the mcp.karaui.dev DNS record on deploy.
+  "routes": [{ "pattern": "mcp.karaui.dev", "custom_domain": true }]
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>karaUI</title>
+  <rect width="1024" height="1024" rx="232" fill="#FAFAFA"/>
+  <g fill="#171717" transform="translate(-17 11)">
+    <!-- K stem -->
+    <rect x="232" y="200" width="176" height="624" rx="88"/>
+    <!-- upper arm -->
+    <path d="M470 512 L738 262" stroke="#171717" stroke-width="176" stroke-linecap="round" fill="none"/>
+    <!-- the lower leg is a ball mid-bounce: motion -->
+    <circle cx="704" cy="726" r="102"/>
+  </g>
+</svg>
