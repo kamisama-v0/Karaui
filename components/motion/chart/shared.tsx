@@ -15,13 +15,18 @@ export type ChartSeries = {
 
 export type ChartDatum = Record<string, string | number>;
 
+/** "natural" is a monotone curve: smooth, but never overshoots a data point. */
+export type ChartCurve = "natural" | "linear" | "step";
+
+export type TooltipIndicator = "dot" | "line" | "dashed";
+
 // Fixed categorical order, validated for colorblind and normal-vision
 // separation (light and dark steps live in the theme's --chart-* tokens).
 // Fallbacks are the light steps, for projects without the theme layer.
 const SLOT_FALLBACKS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"];
 
-/** Color for series `index`; color follows the series, never its rank. */
-export function seriesColor(series: ChartSeries, index: number) {
+/** Color for slot `index`; color follows the series, never its rank. */
+export function seriesColor(series: { color?: string }, index: number) {
   if (series.color) return series.color;
   const slot = index % SLOT_FALLBACKS.length;
   return `var(--chart-${slot + 1}, ${SLOT_FALLBACKS[slot]})`;
@@ -52,31 +57,111 @@ export function niceTicks(min: number, max: number, count = 4) {
   return ticks;
 }
 
-/** Keep every k-th x label so neighbours stay at least `minGap` px apart. */
+/** Keep every k-th label so neighbours stay at least `minGap` px apart. */
 export function labelStride(count: number, width: number, minGap = 56) {
   return Math.max(1, Math.ceil(count / Math.max(1, Math.floor(width / minGap))));
 }
 
-/** Approximate left gutter for y labels at 11px. */
+/** Approximate gutter for axis labels at 12px. */
 export function gutterFor(labels: string[]) {
-  return Math.max(...labels.map((l) => l.length), 1) * 6.5 + 10;
+  return Math.max(...labels.map((l) => l.length), 1) * 7 + 12;
+}
+
+type Point = [number, number];
+
+/** SVG path through `points` (sorted by x) with the given curve. */
+export function curvePath(points: Point[], curve: ChartCurve) {
+  if (points.length === 0) return "";
+  const [x0, y0] = points[0];
+  if (points.length === 1) return `M${x0},${y0}`;
+  if (curve === "step") {
+    // Changes value halfway between points, like a stepped series.
+    let d = `M${x0},${y0}`;
+    for (let i = 1; i < points.length; i++) {
+      const [px] = points[i - 1];
+      const [x, y] = points[i];
+      const mid = (px + x) / 2;
+      d += `H${mid}V${y}H${x}`;
+    }
+    return d;
+  }
+  if (curve === "linear" || points.length < 3) {
+    return points.map(([x, y], i) => `${i ? "L" : "M"}${x},${y}`).join("");
+  }
+  // Monotone cubic (Fritsch–Carlson): tangents are clamped so the curve stays
+  // between its neighbours and never invents a peak the data doesn't have.
+  const n = points.length;
+  const slopes: number[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    const dx = points[i + 1][0] - points[i][0];
+    slopes.push(dx ? (points[i + 1][1] - points[i][1]) / dx : 0);
+  }
+  const tangents = points.map((_, i) => {
+    if (i === 0) return slopes[0];
+    if (i === n - 1) return slopes[n - 2];
+    const a = slopes[i - 1];
+    const b = slopes[i];
+    return a * b <= 0 ? 0 : (a + b) / 2;
+  });
+  for (let i = 0; i < n - 1; i++) {
+    const m = slopes[i];
+    if (m === 0) {
+      tangents[i] = 0;
+      tangents[i + 1] = 0;
+      continue;
+    }
+    const a = tangents[i] / m;
+    const b = tangents[i + 1] / m;
+    const s = a * a + b * b;
+    if (s > 9) {
+      const t = 3 / Math.sqrt(s);
+      tangents[i] = t * a * m;
+      tangents[i + 1] = t * b * m;
+    }
+  }
+  let d = `M${x0},${y0}`;
+  for (let i = 0; i < n - 1; i++) {
+    const [xa, ya] = points[i];
+    const [xb, yb] = points[i + 1];
+    const h = (xb - xa) / 3;
+    d += `C${xa + h},${ya + tangents[i] * h} ${xb - h},${yb - tangents[i + 1] * h} ${xb},${yb}`;
+  }
+  return d;
 }
 
 // ── tooltip ────────────────────────────────────────────────────────────────
 
 export type TooltipRow = { label: string; value: string; color: string };
 
+function Indicator({ kind, color }: { kind: TooltipIndicator; color: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "shrink-0 rounded-[2px]",
+        kind === "dot" && "size-2.5",
+        kind === "line" && "w-1 self-stretch",
+        kind === "dashed" && "w-0 self-stretch border-[1.5px] border-dashed",
+      )}
+      style={
+        kind === "dashed" ? { borderColor: color } : { background: color }
+      }
+    />
+  );
+}
+
 /**
- * Value-first readout that springs between data positions. Rows key each
- * series with a short stroke of its color; text stays in text tokens.
+ * Compact readout that springs between data positions: an optional label,
+ * then one row per series with a colored indicator, the name and the value.
  */
 export function ChartTooltip({
   open,
   x,
   y,
   width,
-  title,
+  label,
   rows,
+  indicator = "dot",
 }: {
   open: boolean;
   /** Anchor in px, relative to the chart's positioned wrapper. */
@@ -84,8 +169,9 @@ export function ChartTooltip({
   y: number;
   /** Wrapper width, to flip the tooltip before it overflows the edge. */
   width: number;
-  title: string;
+  label?: string;
   rows: TooltipRow[];
+  indicator?: TooltipIndicator;
 }) {
   const reduce = useReducedMotion();
   const flip = x > width / 2;
@@ -94,14 +180,15 @@ export function ChartTooltip({
       {open && (
         <motion.div
           aria-hidden
-          initial={{ opacity: 0, x, y }}
-          animate={{ opacity: 1, x, y }}
-          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+          initial={{ opacity: 0, x, y, scale: reduce ? 1 : 0.96 }}
+          animate={{ opacity: 1, x, y, scale: 1 }}
+          exit={{ opacity: 0, scale: reduce ? 1 : 0.96, transition: { duration: 0.1 } }}
           transition={
             reduce
               ? { duration: 0 }
               : {
                   opacity: { duration: 0.12 },
+                  scale: { duration: 0.15, ease: EASE_OUT },
                   // Tracks the pointer between data positions; firm enough to
                   // never trail behind a quick sweep.
                   default: { type: "spring", stiffness: 520, damping: 42 },
@@ -111,27 +198,24 @@ export function ChartTooltip({
         >
           <div
             className={cn(
-              "min-w-32 -translate-y-1/2 rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur",
+              "grid min-w-32 -translate-y-1/2 gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs shadow-xl",
               flip ? "-translate-x-[calc(100%+12px)]" : "translate-x-3",
             )}
           >
-            <p className="mb-1.5 text-muted-foreground">{title}</p>
-            <ul className="space-y-1">
-              {rows.map((row) => (
-                <li key={row.label} className="flex items-center gap-2">
-                  <span
-                    className="h-0.5 w-3 shrink-0 rounded-full"
-                    style={{ background: row.color }}
-                  />
-                  <span className="font-medium tabular-nums text-foreground">
+            {label ? (
+              <p className="font-medium text-foreground">{label}</p>
+            ) : null}
+            {rows.map((row) => (
+              <div key={row.label} className="flex items-stretch gap-2">
+                <Indicator kind={indicator} color={row.color} />
+                <div className="flex flex-1 items-center justify-between gap-4 leading-none">
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="font-mono font-medium tabular-nums text-foreground">
                     {row.value}
                   </span>
-                  <span className="truncate text-muted-foreground">
-                    {row.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
       )}
@@ -141,20 +225,17 @@ export function ChartTooltip({
 
 // ── legend & table ─────────────────────────────────────────────────────────
 
-/** Legend that mirrors the mark: a block for bars/areas, a stroke for lines. */
 export function ChartLegend({
   items,
-  mark,
   className,
 }: {
   items: { label: string; color: string }[];
-  mark: "block" | "line";
   className?: string;
 }) {
   return (
     <ul
       className={cn(
-        "flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground",
+        "flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-3 text-xs text-muted-foreground",
         className,
       )}
     >
@@ -162,10 +243,7 @@ export function ChartLegend({
         <li key={item.label} className="flex items-center gap-1.5">
           <span
             aria-hidden
-            className={cn(
-              "shrink-0",
-              mark === "block" ? "size-2.5 rounded-[3px]" : "h-0.5 w-3 rounded-full",
-            )}
+            className="size-2 shrink-0 rounded-[2px]"
             style={{ background: item.color }}
           />
           {item.label}
@@ -185,39 +263,59 @@ export function ChartTable({
   head: string[];
   rows: ReactNode[][];
 }) {
+  // The wrapper is what hides it: a <caption> escapes a visually hidden
+  // table's clip and would otherwise paint over the chart.
   return (
-    <table className="sr-only">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          {head.map((h) => (
-            <th key={h} scope="col">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, r) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: rows mirror data order and never reorder.
-          <tr key={r}>
-            {row.map((cell, c) =>
-              c === 0 ? (
-                // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order.
-                <th key={c} scope="row">
-                  {cell}
-                </th>
-              ) : (
-                // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order.
-                <td key={c}>{cell}</td>
-              ),
-            )}
+    <div className="sr-only">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            {head.map((h) => (
+              <th key={h} scope="col">
+                {h}
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row, r) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: rows mirror data order and never reorder.
+            <tr key={r}>
+              {row.map((cell, c) =>
+                c === 0 ? (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order.
+                  <th key={c} scope="row">
+                    {cell}
+                  </th>
+                ) : (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order.
+                  <td key={c}>{cell}</td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 /** Shared entrance timing: marks grow once the chart scrolls into view. */
-export const GROW = { duration: 0.6, ease: EASE_OUT } as const;
+export const GROW = { duration: 0.7, ease: EASE_OUT } as const;
+
+/** Arrow-key stepping shared by every chart that reads positions. */
+export function stepIndex(
+  key: string,
+  current: number | null,
+  count: number,
+  wrap = false,
+) {
+  const forward = key === "ArrowRight" || key === "ArrowDown";
+  const back = key === "ArrowLeft" || key === "ArrowUp";
+  if (!forward && !back) return undefined;
+  if (current === null) return forward ? 0 : count - 1;
+  const next = current + (forward ? 1 : -1);
+  if (wrap) return (next + count) % count;
+  return Math.min(count - 1, Math.max(0, next));
+}

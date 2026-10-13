@@ -1,30 +1,45 @@
 "use client";
 
+import { TrendingUp } from "lucide-react";
 import { BarChart } from "@/components/motion/chart/bar-chart";
 
 const DATA = [
-  { month: "Jan", desktop: 1840, mobile: 1210 },
-  { month: "Feb", desktop: 2105, mobile: 1390 },
-  { month: "Mar", desktop: 1960, mobile: 1625 },
-  { month: "Apr", desktop: 2410, mobile: 1880 },
-  { month: "May", desktop: 2290, mobile: 2140 },
-  { month: "Jun", desktop: 2675, mobile: 2380 },
+  { month: "January", desktop: 186, mobile: 80 },
+  { month: "February", desktop: 305, mobile: 200 },
+  { month: "March", desktop: 237, mobile: 120 },
+  { month: "April", desktop: 73, mobile: 190 },
+  { month: "May", desktop: 209, mobile: 130 },
+  { month: "June", desktop: 214, mobile: 140 },
 ];
 
 export function ChartBarPreview() {
   return (
-    <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-5">
-      <p className="text-sm font-medium text-foreground">Weekly installs</p>
-      <p className="mb-4 text-xs text-muted-foreground">January – June 2026</p>
-      <BarChart
-        title="Weekly installs by platform, January to June 2026"
-        data={DATA}
-        index="month"
-        series={[
-          { key: "desktop", label: "Desktop" },
-          { key: "mobile", label: "Mobile" },
-        ]}
-      />
+    <div className="w-full max-w-xl rounded-xl border border-border bg-card text-card-foreground">
+      <div className="grid gap-1 p-5 pb-2">
+        <p className="font-semibold leading-none">Visitors by device</p>
+        <p className="text-sm text-muted-foreground">January – June 2026</p>
+      </div>
+      <div className="px-5 pt-4">
+        <BarChart
+          title="Monthly visitors by device, January to June 2026"
+          data={DATA}
+          index="month"
+          series={[
+            { key: "desktop", label: "Desktop" },
+            { key: "mobile", label: "Mobile" },
+          ]}
+          formatIndex={(m) => m.slice(0, 3)}
+          indicator="dashed"
+        />
+      </div>
+      <div className="grid gap-1.5 p-5 pt-3 text-sm">
+        <p className="flex items-center gap-2 font-medium leading-none">
+          Trending up by 5.2% this month <TrendingUp className="size-4" />
+        </p>
+        <p className="leading-none text-muted-foreground">
+          Showing total visitors for the last 6 months
+        </p>
+      </div>
     </div>
   );
 }

@@ -754,36 +754,57 @@ export const registry: CategoryEntry[] = [
         slug: "chart",
         name: "Chart",
         description:
-          "Animated SVG charts with a colorblind-validated palette (theme --chart-1…5): columns grow from the baseline, lines draw themselves in, donut slices sweep around the ring, and sparklines trace a trend for stat tiles. Hover or arrow keys read values in one tooltip per position; every chart ships a legend and a screen-reader table. Zero chart-library dependencies, reduced-motion safe.",
-        file: "components/motion/chart/bar-chart.tsx",
+          "Animated SVG charts in the shadcn style with zero chart-library dependencies: area and line charts with monotone, linear or stepped curves that reveal left to right (and again when the range changes), grouped, stacked or horizontal bars that grow from the baseline, donut and pie slices that sweep in clockwise, and radial progress rings. Every chart shares one tooltip with dot, line or dashed indicators, arrow-key reading, a legend and a screen-reader table. Colors come from the theme's --chart-1…5 tokens, validated for color-blind separation; reduced-motion safe.",
+        file: "components/motion/chart/area-chart.tsx",
         badge: "new",
         launchedAt: "2026-10-14",
         keywords: [
           "react chart",
           "animated chart",
+          "area chart react",
           "bar chart react",
           "line chart react",
           "donut chart",
+          "radial chart",
           "sparkline",
           "shadcn chart",
           "dashboard chart",
         ],
         examples: [
           {
+            slug: "area",
+            name: "Area Chart",
+            description:
+              "Stacked gradient areas with a time-range switch; the reveal replays whenever the range changes.",
+            installSlug: "chart-area",
+            file: "components/motion/chart/area-chart.tsx",
+            previewKey: "motion/chart-area",
+            previewFile: "components/previews/motion/chart-area.preview.tsx",
+          },
+          {
             slug: "bar",
             name: "Bar Chart",
             description:
-              "Grouped columns that grow from the baseline; the category band is the hover target and lists every series.",
+              "Grouped columns that grow from the baseline; hovering a category dims the rest and reads every series.",
             installSlug: "chart-bar",
             file: "components/motion/chart/bar-chart.tsx",
             previewKey: "motion/chart-bar",
             previewFile: "components/previews/motion/chart-bar.preview.tsx",
           },
           {
+            slug: "bar-horizontal",
+            name: "Horizontal Bars",
+            description:
+              "The same BarChart with layout=\"horizontal\" and printed values: ranked categories read left to right.",
+            file: "components/motion/chart/bar-chart.tsx",
+            previewKey: "motion/chart-bar-horizontal",
+            previewFile: "components/previews/motion/chart-bar-horizontal.preview.tsx",
+          },
+          {
             slug: "line",
             name: "Line Chart",
             description:
-              "2px lines that draw in, optional area fill for one series, and a crosshair that snaps to the nearest point.",
+              "Smooth monotone lines with dots, a snapping cursor and one tooltip for every series.",
             installSlug: "chart-line",
             file: "components/motion/chart/line-chart.tsx",
             previewKey: "motion/chart-line",
@@ -793,11 +814,21 @@ export const registry: CategoryEntry[] = [
             slug: "donut",
             name: "Donut Chart",
             description:
-              "Share of a whole: slices sweep in and the center swaps from the total to the hovered slice's value and share.",
+              "Slices sweep in clockwise; the hovered slice lifts and the center swaps from the total to its value and share. variant=\"pie\" for a solid pie.",
             installSlug: "chart-donut",
             file: "components/motion/chart/donut-chart.tsx",
             previewKey: "motion/chart-donut",
             previewFile: "components/previews/motion/chart-donut.preview.tsx",
+          },
+          {
+            slug: "radial",
+            name: "Radial Chart",
+            description:
+              "Concentric progress rings with rounded caps that fill clockwise toward a target.",
+            installSlug: "chart-radial",
+            file: "components/motion/chart/radial-chart.tsx",
+            previewKey: "motion/chart-radial",
+            previewFile: "components/previews/motion/chart-radial.preview.tsx",
           },
           {
             slug: "sparkline",
