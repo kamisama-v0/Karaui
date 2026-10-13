@@ -454,6 +454,9 @@ export const previews: Record<string, ComponentType> = {
       (m) => m.CalendarRangePreview,
     ),
   ),
+  "motion/stepper": dynamic(() =>
+    import("./motion/stepper.preview").then((m) => m.StepperPreview),
+  ),
   "motion/date-picker": dynamic(() =>
     import("./motion/date-picker.preview").then((m) => m.DatePickerPreview),
   ),

@@ -751,6 +751,23 @@ export const registry: CategoryEntry[] = [
         keywords: ["picker", "wheel picker", "ios picker", "drum picker", "spinner", "time picker", "date picker", "scroll picker"],
       },
       {
+        slug: "stepper",
+        name: "Stepper",
+        description:
+          "Multi-step flow with an active ring that glides between step markers, connectors that fill as steps complete, panels that slide in from the direction of travel while the container morphs to each panel's height, and an async per-step guard that shakes the marker when it refuses. Linear or free navigation, controlled/uncontrolled, reduced-motion safe.",
+        file: "components/motion/stepper.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react stepper",
+          "multi step form",
+          "wizard component",
+          "onboarding flow",
+          "progress steps",
+          "shadcn stepper",
+        ],
+      },
+      {
         slug: "date-picker",
         name: "Date Picker",
         description:

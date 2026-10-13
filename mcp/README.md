@@ -37,4 +37,4 @@ bun run typecheck
 bun run deploy
 ```
 
-Requires `karaui.kamisama-v0.my.id` on Cloudflare. Wrangler provisions the `mcp-karaui.kamisama-v0.my.id` custom domain on first deploy (see `routes` in `wrangler.jsonc`). To point at a different registry, set the `REGISTRY_URL` var.
+Requires the `kamisama-v0.my.id` zone on Cloudflare. Wrangler provisions the `mcp-karaui.kamisama-v0.my.id` custom domain on first deploy (see `routes` in `wrangler.jsonc`). To point at a different registry, set the `REGISTRY_URL` var.
