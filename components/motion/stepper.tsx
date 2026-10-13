@@ -294,10 +294,9 @@ export function StepperIndicator({
         return (
           <li
             key={step.id}
-            className={cn(
-              "relative flex min-w-0 flex-col items-center gap-2",
-              i < steps.length - 1 ? "flex-1" : "flex-none",
-            )}
+            // Equal columns keep the markers centered and make each connector
+            // span exactly one column width, center to center.
+            className="relative flex min-w-0 flex-1 flex-col items-center gap-2"
           >
             {i < steps.length - 1 && (
               // Connector from this marker's center to the next one's.
