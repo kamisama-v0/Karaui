@@ -18,8 +18,6 @@ const PAGE_CARDS = {
   },
 } as const;
 
-export const runtime = "edge";
-
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const { searchParams } = requestUrl;

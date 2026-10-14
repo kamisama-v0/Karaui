@@ -4,6 +4,7 @@ import { findComponent, type ComponentExample } from "@/lib/registry";
 import { buildEntry } from "@/lib/registry-server";
 import { pageUrlFor } from "@/lib/signature";
 import { readOptionalSourceFile } from "@/lib/source-files";
+import { REGISTRY_CONFIG } from "@/lib/site";
 
 function escapeTableCell(value: string) {
   return value.replace(/\|/g, "\\|").replace(/\s+/g, " ").trim();
@@ -94,6 +95,12 @@ export async function buildComponentMarkdown(
     `> ${component.description}`,
     "",
     "## Install",
+    "",
+    "One-time setup: add the registry to `components.json`:",
+    "",
+    "```json",
+    REGISTRY_CONFIG,
+    "```",
     "",
   ];
 

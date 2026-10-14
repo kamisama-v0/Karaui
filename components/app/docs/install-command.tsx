@@ -5,6 +5,7 @@ import { CopyButton } from "@/components/app/docs/copy-button";
 import { ActionSwapCascadeText } from "@/components/motion/action-swap-cascade";
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs";
 import { registry } from "@/lib/registry";
+import { REGISTRY_NAMESPACE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const PM_COMMANDS = {
@@ -17,7 +18,6 @@ const PM_COMMANDS = {
 type PM = keyof typeof PM_COMMANDS;
 const PMS = Object.keys(PM_COMMANDS) as PM[];
 
-const REGISTRY_NAMESPACE = "@karaui";
 const CYCLE_MS = 1800;
 
 const COMPONENT_SLUGS = registry.flatMap((cat) =>

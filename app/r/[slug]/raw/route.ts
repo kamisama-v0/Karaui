@@ -2,6 +2,8 @@ import { allRegistryTargets, findCategoryBySlug, findRegistryTarget } from "@/li
 import { readSourceFile } from "@/lib/source-files";
 
 export const dynamic = "force-static";
+// Only the prerendered slugs exist; unknown ones 404 without running code.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return allRegistryTargets().map((c) => ({ slug: c.slug }));

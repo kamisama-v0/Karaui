@@ -3,6 +3,8 @@ import { buildComponentMarkdown } from "@/lib/component-markdown";
 import { allRegistryTargets, allShadcnTargets, buildEntry, buildShadcnItem, findCategoryBySlug, findRegistryTarget } from "@/lib/registry-server";
 
 export const dynamic = "force-static";
+// Only the prerendered slugs exist; unknown ones 404 without running code.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return [

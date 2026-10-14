@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { allShadcnTargets, buildShadcnItem, findCategoryBySlug } from "@/lib/registry-server";
 
 export const dynamic = "force-static";
+// Only the prerendered slugs exist; unknown ones 404 without running code.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return allShadcnTargets().map((component) => ({ slug: `${component.slug}.json` }));

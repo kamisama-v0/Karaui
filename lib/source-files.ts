@@ -13,7 +13,9 @@ function toProjectRelative(filePath: string) {
 }
 
 function sourcePath(rel: string) {
-  return path.join(process.cwd(), rel);
+  // Sources are only read while prerendering (every page and registry route
+  // is force-static), so keep Turbopack from tracing the whole project.
+  return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
 }
 
 export async function readSourceFile(rel: string) {

@@ -36,7 +36,17 @@ Each component includes a live preview, usage example, source code, and a shadcn
 
 ## Install a component
 
-Open any component page and copy the install command. karaUI is in the shadcn registry directory under the `@karaui` namespace.
+Install commands use the `@karaui` namespace. Add it to your `components.json` once:
+
+```json
+{
+  "registries": {
+    "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json"
+  }
+}
+```
+
+Then open any component page and copy its install command:
 
 ```bash
 npx shadcn@latest add @karaui/animated-toast-stack

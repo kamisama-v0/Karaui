@@ -10,6 +10,7 @@ import {
 } from "@/lib/registry";
 import { CodeBlock } from "@/components/app/docs/code-block";
 import { InstallBlock } from "@/components/app/docs/install-block";
+import { RegistrySetup } from "@/components/app/docs/registry-setup";
 import { KeepInMind } from "@/components/app/docs/keep-in-mind";
 import { PageNav, type PageNavItem } from "@/components/app/docs/page-nav";
 import { PropsTable } from "@/components/app/docs/props-table";
@@ -261,6 +262,12 @@ export default async function ComponentPage({
                 pageSlug={comp.slug}
                 example={ex}
                 showApiReference={shouldShowExampleApi(index)}
+                // The one-time registry setup shows under the first install
+                // command only, not repeated per variant.
+                showRegistrySetup={
+                  ex.installSlug != null &&
+                  comp.examples?.findIndex((e) => e.installSlug) === index
+                }
               />
             ))}
           </div>
@@ -286,6 +293,7 @@ export default async function ComponentPage({
               <div className="mt-3">
                 <InstallBlock category={cat.slug} slug={comp.slug} />
               </div>
+              <RegistrySetup className="mt-3" />
             </div>
           </section>
         ) : null}
@@ -369,11 +377,13 @@ async function ExampleBlock({
   pageSlug,
   example,
   showApiReference,
+  showRegistrySetup,
 }: {
   category: string;
   pageSlug: string;
   example: ComponentExample;
   showApiReference: boolean;
+  showRegistrySetup: boolean;
 }) {
   const Preview = previews[example.previewKey];
   const usageFile = example.usageFile ?? example.previewFile;
@@ -440,6 +450,7 @@ async function ExampleBlock({
           <div className="mt-3">
             <InstallBlock category={category} slug={installSlug} />
           </div>
+          {showRegistrySetup ? <RegistrySetup className="mt-3" /> : null}
         </div>
       ) : null}
       {propsDocs.length ? (

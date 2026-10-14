@@ -6,9 +6,10 @@ export async function getGithubStarCount(): Promise<number | null> {
       headers: {
         Accept: "application/vnd.github+json",
       },
-      next: {
-        revalidate: 60 * 60,
-      },
+      // Read once per build. A timed revalidate here would turn every page
+      // (the header shows the count) into ISR that re-renders on the server,
+      // which then needs the component sources at runtime.
+      cache: "force-cache",
     });
 
     if (!response.ok) return null;

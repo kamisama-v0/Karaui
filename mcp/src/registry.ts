@@ -88,7 +88,16 @@ const PM_PREFIX = {
 export type PackageManager = keyof typeof PM_PREFIX;
 export const PACKAGE_MANAGERS = Object.keys(PM_PREFIX) as PackageManager[];
 
-/** The shadcn install command for a component, using the public @karaui namespace. */
+/**
+ * components.json entry that makes `@karaui/…` resolve. Required once per
+ * project until @karaui is listed in shadcn's public registry directory.
+ */
+export const REGISTRY_SETUP = {
+  file: "components.json",
+  registries: { "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json" },
+};
+
+/** The shadcn install command for a component, using the @karaui namespace. */
 export function installCommand(slug: string, pm: PackageManager) {
   return `${PM_PREFIX[pm]} shadcn add @karaui/${slug}`;
 }

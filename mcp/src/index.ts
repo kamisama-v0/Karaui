@@ -5,6 +5,7 @@ import {
   getEntry,
   getIndex,
   installCommand,
+  REGISTRY_SETUP,
   PACKAGE_MANAGERS,
   type IndexComponent,
   type PackageManager,
@@ -157,6 +158,7 @@ export class KaraUiMcp extends McpAgent<Env, Record<string, never>, Record<strin
           packageManager: pm,
           command: installCommand(slug, pm),
           all: PACKAGE_MANAGERS.map((p) => ({ packageManager: p, command: installCommand(slug, p) })),
+          setup: REGISTRY_SETUP,
         });
       },
     );

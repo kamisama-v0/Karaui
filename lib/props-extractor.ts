@@ -3,6 +3,8 @@ import ts from "typescript";
 import * as docgen from "react-docgen-typescript";
 import { registry } from "@/lib/registry";
 
+// Only used while prerendering; turbopackIgnore keeps these dynamic paths from
+// tracing the whole project into the server bundle.
 const PROJECT_ROOT = process.cwd();
 
 export type PropDoc = {
@@ -22,9 +24,9 @@ function allRegisteredFiles(): string[] {
   const files = new Set<string>();
   for (const category of registry) {
     for (const comp of category.components) {
-      files.add(path.join(PROJECT_ROOT, comp.file));
+      files.add(path.join(/*turbopackIgnore: true*/ PROJECT_ROOT, comp.file));
       for (const example of comp.examples ?? []) {
-        files.add(path.join(PROJECT_ROOT, example.file));
+        files.add(path.join(/*turbopackIgnore: true*/ PROJECT_ROOT, example.file));
       }
     }
   }
@@ -80,7 +82,7 @@ function ownProps(props: docgen.PropItem[]): docgen.PropItem[] {
 const cache = new Map<string, ComponentPropsDoc[]>();
 
 export function getComponentProps(relFile: string): ComponentPropsDoc[] {
-  const absPath = path.join(PROJECT_ROOT, relFile);
+  const absPath = path.join(/*turbopackIgnore: true*/ PROJECT_ROOT, relFile);
   const cached = cache.get(absPath);
   if (cached) return cached;
 
