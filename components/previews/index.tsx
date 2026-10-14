@@ -554,6 +554,45 @@ export const previews: Record<string, ComponentType> = {
       (m) => m.CalendarMultiplePreview,
     ),
   ),
+  "motion/calendar-week": dynamic(() =>
+    import("./motion/calendar-week.preview").then((m) => m.CalendarWeekPreview),
+  ),
+  "motion/booking-calendar": dynamic(() =>
+    import("./motion/booking-calendar.preview").then((m) => m.BookingCalendarPreview),
+  ),
+  "motion/time-picker": dynamic(() =>
+    import("./motion/time-picker.preview").then((m) => m.TimePickerPreview),
+  ),
+  "motion/date-time-picker": dynamic(() =>
+    import("./motion/date-time-picker.preview").then((m) => m.DateTimePickerPreview),
+  ),
+  "motion/month-picker": dynamic(() =>
+    import("./motion/month-picker.preview").then((m) => m.MonthPickerPreview),
+  ),
+  "motion/table-advanced": dynamic(() =>
+    import("./motion/table-advanced.preview").then((m) => m.TableAdvancedPreview),
+  ),
+  "motion/toast-promise": dynamic(() =>
+    import("./motion/toast-promise.preview").then((m) => m.ToastPromisePreview),
+  ),
+  "motion/carousel": dynamic(() =>
+    import("./motion/carousel.preview").then((m) => m.CarouselPreview),
+  ),
+  "motion/markdown-editor": dynamic(() =>
+    import("./motion/markdown-editor.preview").then((m) => m.MarkdownEditorPreview),
+  ),
+  "motion/tour": dynamic(() =>
+    import("./motion/tour.preview").then((m) => m.TourPreview),
+  ),
+  "motion/avatar-group": dynamic(() =>
+    import("./motion/avatar-group.preview").then((m) => m.AvatarGroupPreview),
+  ),
+  "blocks/event-calendar": dynamic(() =>
+    import("./blocks/event-calendar.preview").then((m) => m.EventCalendarPreview),
+  ),
+  "blocks/pricing-table": dynamic(() =>
+    import("./blocks/pricing-table.preview").then((m) => m.PricingTablePreview),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {

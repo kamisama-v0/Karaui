@@ -567,8 +567,30 @@ export const registry: CategoryEntry[] = [
       {
         slug: "animated-toast-stack",
         name: "Animated Toast Stack",
-        description: "Stacked toasts with status morphs, swipe dismissal, actions and layout-aware motion.",
+        description: "Stacked toasts with status morphs, swipe dismissal, actions, promise tracking and layout-aware motion.",
         file: "components/motion/animated-toast-stack.tsx",
+        examples: [
+          {
+            slug: "stack",
+            name: "Animated Toast Stack",
+            description:
+              "Stacked toasts with status morphs, swipe dismissal, actions and six screen positions.",
+            installSlug: "animated-toast-stack",
+            file: "components/motion/animated-toast-stack.tsx",
+            previewKey: "motion/animated-toast-stack",
+            previewFile: "components/previews/motion/animated-toast-stack.preview.tsx",
+          },
+          {
+            slug: "promise",
+            name: "Toast Promise",
+            description:
+              "One toast tracks a promise: a spinner while pending, then it morphs in place into success or error and starts its dismiss timer.",
+            installSlug: "toast-promise",
+            file: "components/motion/animated-toast-stack.tsx",
+            previewKey: "motion/toast-promise",
+            previewFile: "components/previews/motion/toast-promise.preview.tsx",
+          },
+        ],
       },
       {
         slug: "theme-toggle",
@@ -1060,6 +1082,74 @@ export const registry: CategoryEntry[] = [
         ],
       },
       {
+        slug: "carousel",
+        name: "Carousel",
+        description:
+          "Swipeable slide carousel driven by one motion value: momentum drag that snaps to slides with rubber-band edges, seamless loop, responsive slidesPerView, dot or thumbnail indicators with a gliding active pill, and autoplay with a progress bar that pauses on hover, focus or hidden tabs.",
+        file: "components/motion/carousel.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react carousel",
+          "swipe carousel react",
+          "image slider react",
+          "autoplay carousel",
+          "infinite loop carousel",
+          "accessible carousel",
+        ],
+      },
+      {
+        slug: "markdown-editor",
+        name: "Markdown Editor",
+        description:
+          "Textarea Markdown editor with an undo-safe formatting toolbar and shortcuts, list continuation and Tab indenting, a floating selection toolbar, Write/Preview/Split tabs with a gliding indicator, and a built-in safe renderer that outputs React elements, never raw HTML.",
+        file: "components/motion/markdown-editor.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react markdown editor",
+          "markdown toolbar",
+          "markdown preview split view",
+          "textarea formatting shortcuts",
+          "safe markdown renderer",
+          "floating selection toolbar",
+        ],
+      },
+      {
+        slug: "tour",
+        name: "Tour",
+        description:
+          "Onboarding tour that dims the page and cuts a rounded spotlight around each target, gliding and resizing it from step to step, with a card that flips and shifts to stay in the viewport, a gliding progress dot, Back/Next/Skip/Done, targets scrolled into view, Escape to close, trapped focus that returns to the trigger, controlled/uncontrolled open and step, and reduced-motion safe.",
+        file: "components/motion/tour.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react product tour",
+          "onboarding tour component",
+          "spotlight walkthrough",
+          "feature tour react",
+          "guided tour overlay",
+          "shadcn tour",
+        ],
+      },
+      {
+        slug: "avatar-group",
+        name: "Avatar Group",
+        description:
+          "Overlapping avatar stack that springs apart on hover or keyboard focus, with name tooltips, online/away/busy presence dots, an optional is-typing pulse ring and a +N chip that opens the full list in a popover, plus LiveCursors: collaboration cursors with colored arrows and name labels that spring toward container-relative positions.",
+        file: "components/motion/avatar-group.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react avatar group",
+          "avatar stack component",
+          "presence indicator",
+          "live cursors react",
+          "multiplayer collaboration ui",
+          "shadcn avatar group",
+        ],
+      },
+      {
         slug: "stepper",
         name: "Stepper",
         description:
@@ -1080,7 +1170,7 @@ export const registry: CategoryEntry[] = [
         slug: "date-picker",
         name: "Date Picker",
         description:
-          "Month-grid calendar with a selection pill that glides between days, directional month slides, single, range or multiple-day selection across one or several side-by-side months, min/max and per-day disabling, full keyboard grid navigation, a date field and a two-month range field with presets whose calendars morph open from the trigger. Locale-aware, reduced-motion safe.",
+          "Month-grid calendar with a selection pill that glides between days, directional month slides, single, range, week or multiple-day selection across one or several side-by-side months, ISO week numbers, per-day labels, min/max and per-day disabling, full keyboard grid navigation, a date field, a two-month range field with presets, a booking calendar with nightly prices, time and date-time wheels and a month picker. Locale-aware, reduced-motion safe.",
         file: "components/motion/date-picker.tsx",
         badge: "new",
         launchedAt: "2026-10-14",
@@ -1141,6 +1231,55 @@ export const registry: CategoryEntry[] = [
             previewKey: "motion/calendar-multiple",
             previewFile: "components/previews/motion/calendar-multiple.preview.tsx",
           },
+          {
+            slug: "week",
+            name: "Week Picker",
+            description:
+              "Hovering a day previews its whole week and a click picks it as one pill across the row, with an ISO week-number column; shown as a timesheet week.",
+            file: "components/motion/calendar.tsx",
+            previewKey: "motion/calendar-week",
+            previewFile: "components/previews/motion/calendar-week.preview.tsx",
+          },
+          {
+            slug: "booking",
+            name: "Booking Calendar",
+            description:
+              "Two-month stay picker with nightly prices under each day and the cheapest days tinted, booked nights struck through, a minimum stay, and a footer with dates, nights, total and a Reserve button.",
+            installSlug: "booking-calendar",
+            file: "components/motion/booking-calendar.tsx",
+            previewKey: "motion/booking-calendar",
+            previewFile: "components/previews/motion/booking-calendar.preview.tsx",
+          },
+          {
+            slug: "time-picker",
+            name: "Time Picker",
+            description:
+              "iOS-style hour, minute and AM/PM drums composed from WheelPicker, inline or as a time field whose wheels morph open and commit on Done.",
+            installSlug: "time-picker",
+            file: "components/motion/time-picker.tsx",
+            previewKey: "motion/time-picker",
+            previewFile: "components/previews/motion/time-picker.preview.tsx",
+          },
+          {
+            slug: "date-time-picker",
+            name: "Date & Time Picker",
+            description:
+              "One field whose panel morphs open with the calendar beside time wheels; edits a draft and commits on Done, labelled like \"Oct 14, 2026, 9:30 AM\".",
+            installSlug: "date-time-picker",
+            file: "components/motion/date-time-picker.tsx",
+            previewKey: "motion/date-time-picker",
+            previewFile: "components/previews/motion/date-time-picker.preview.tsx",
+          },
+          {
+            slug: "month-picker",
+            name: "Month Picker",
+            description:
+              "Twelve-month grid with a gliding selection pill, year slides and a zoom-out year grid, single or range mode, min/max and full keyboard navigation, plus a popover month field.",
+            installSlug: "month-picker",
+            file: "components/motion/month-picker.tsx",
+            previewKey: "motion/month-picker",
+            previewFile: "components/previews/motion/month-picker.preview.tsx",
+          },
         ],
       },
       {
@@ -1189,6 +1328,16 @@ export const registry: CategoryEntry[] = [
             file: "components/motion/table/index.tsx",
             previewKey: "motion/table-async",
             previewFile: "components/previews/motion/table-async.preview.tsx",
+          },
+          {
+            slug: "advanced",
+            name: "Advanced Data Table",
+            description:
+              "Paginated DataTable with multi-column sort (Shift+click adds keys, rows glide into place), per-column text/select filters and global search, column hide and drag or keyboard reorder, expandable detail rows and Shift-range selection with a selected-count bar.",
+            installSlug: "table-advanced",
+            file: "components/motion/table/data-table.tsx",
+            previewKey: "motion/table-advanced",
+            previewFile: "components/previews/motion/table-advanced.preview.tsx",
           },
         ],
       },
@@ -1785,6 +1934,40 @@ export const registry: CategoryEntry[] = [
     description:
       "Product-ready animated React UI blocks built with Motion and Tailwind CSS, available as customizable copy-paste source.",
     components: [
+      {
+        slug: "event-calendar",
+        name: "Event Calendar",
+        description:
+          "Month and week event calendar: month cells pack events into lanes so multi-day events become bars across the week row and overflowing days open a \"+N more\" list, while week view places timed events on an hour grid, side by side where they overlap, with a live now line and optional 15-minute drag to reschedule. Periods slide in from the direction you travel, the Month/Week switcher pill glides between views, and day cells support arrow-key navigation.",
+        file: "components/motion/event-calendar.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react event calendar",
+          "calendar scheduler component",
+          "week view calendar react",
+          "month view calendar",
+          "google calendar clone react",
+          "shadcn event calendar",
+        ],
+      },
+      {
+        slug: "pricing-table",
+        name: "Pricing Table",
+        description:
+          "Pricing block with a monthly/yearly toggle whose pill glides between options beside a Save 20% badge, prices that roll digit by digit to the new period, three plans with a highlighted Popular card, feature lists with check and cross rows, per-plan CTA buttons, Intl currency formatting and cards that stack based on their own container width.",
+        file: "components/motion/pricing-table.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react pricing table",
+          "pricing page component",
+          "monthly yearly toggle",
+          "saas pricing cards",
+          "pricing plans tailwind",
+          "shadcn pricing",
+        ],
+      },
       {
         slug: "kanban-board",
         name: "Kanban Board",

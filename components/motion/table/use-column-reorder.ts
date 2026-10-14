@@ -10,15 +10,22 @@ import type { HeaderCellRefs, TableColumn } from "./types";
 export function useColumnReorder<T>({
   columns,
   thRefs,
+  order: orderProp,
+  defaultOrder,
   onColumnOrderChange,
 }: {
   columns: TableColumn<T>[];
   thRefs: HeaderCellRefs;
+  /** Controlled column key order. Omit to keep the order internally. */
+  order?: string[];
+  /** Initial order for uncontrolled use; defaults to the `columns` order. */
+  defaultOrder?: string[];
   onColumnOrderChange?: (keys: string[]) => void;
 }) {
-  const [order, setOrder] = useState<string[]>(() =>
-    columns.map((c) => c.key),
+  const [internalOrder, setOrder] = useState<string[]>(
+    () => defaultOrder ?? columns.map((c) => c.key),
   );
+  const order = orderProp ?? internalOrder;
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
 
@@ -58,6 +65,15 @@ export function useColumnReorder<T>({
     [orderedColumns, thRefs],
   );
 
+  /** Commit a full key order — the drop of a drag, or a keyboard move. */
+  const commitOrder = useCallback(
+    (keys: string[]) => {
+      if (orderProp === undefined) setOrder(keys);
+      onColumnOrderChange?.(keys);
+    },
+    [orderProp, onColumnOrderChange],
+  );
+
   const startReorder = useCallback((key: string, e: ReactPointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -84,14 +100,13 @@ export function useColumnReorder<T>({
           let to = dropIndex;
           if (from < to) to--;
           without.splice(to, 0, dragKey);
-          setOrder(without);
-          onColumnOrderChange?.(without);
+          commitOrder(without);
         }
       }
       setDragKey(null);
       setDropIndex(null);
     },
-    [dragKey, dropIndex, orderedColumns, onColumnOrderChange],
+    [dragKey, dropIndex, orderedColumns, commitOrder],
   );
 
   return {
@@ -101,5 +116,6 @@ export function useColumnReorder<T>({
     startReorder,
     moveReorder,
     endReorder,
+    commitOrder,
   };
 }

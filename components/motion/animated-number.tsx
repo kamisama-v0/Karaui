@@ -16,7 +16,7 @@ export interface AnimatedNumberProps {
 export function AnimatedNumber({
   value,
   duration = 1.2,
-  format = (n) => Math.round(n).toLocaleString(),
+  format = (n) => Math.round(n).toLocaleString("en-US"),
   className,
   startOnView = true,
 }: AnimatedNumberProps) {

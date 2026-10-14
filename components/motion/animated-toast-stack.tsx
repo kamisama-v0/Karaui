@@ -16,6 +16,7 @@ import {
   type Transition,
 } from "motion/react";
 import {
+  isValidElement,
   memo,
   useCallback,
   useEffect,
@@ -56,6 +57,27 @@ export type AnimatedToast = {
 
 export type ToastInput = Omit<AnimatedToast, "id" | "createdAt"> & {
   id?: string;
+};
+
+/** Copy for one phase of a promise toast: a plain title, or a partial toast. */
+export type ToastPromiseContent =
+  | ReactNode
+  | (Omit<ToastInput, "id" | "status"> & { title: ReactNode });
+
+export type ToastPromiseMessages<T> = {
+  loading: ToastPromiseContent;
+  success: ToastPromiseContent | ((data: T) => ToastPromiseContent);
+  error: ToastPromiseContent | ((error: unknown) => ToastPromiseContent);
+  /** Auto-dismiss delay once the promise settles. Defaults to the hook's defaultDuration. */
+  duration?: number;
+  /** Reuse an existing toast id instead of opening a new one. */
+  id?: string;
+};
+
+export type ToastPromiseResult<T> = {
+  id: string;
+  /** The original promise, so callers can still `await` the work. */
+  result: Promise<T>;
 };
 
 export type ToastClassNames = {
@@ -141,6 +163,22 @@ function createToast(input: ToastInput, defaultDuration: number): AnimatedToast 
   };
 }
 
+type ToastPromiseObject = Omit<ToastInput, "id" | "status"> & { title: ReactNode };
+
+function isToastContentObject(content: ToastPromiseContent): content is ToastPromiseObject {
+  return (
+    typeof content === "object" &&
+    content !== null &&
+    !isValidElement(content) &&
+    !Array.isArray(content) &&
+    "title" in content
+  );
+}
+
+function resolvePromiseContent(content: ToastPromiseContent): ToastPromiseObject {
+  return isToastContentObject(content) ? content : { title: content as ReactNode };
+}
+
 export function useAnimatedToastStack({
   initialToasts = [],
   defaultDuration = 4200,
@@ -185,6 +223,88 @@ export function useAnimatedToastStack({
       ),
     );
   }, []);
+
+  /**
+   * One toast that tracks a promise: a spinner while pending (no auto-dismiss),
+   * then morphs in place into success or error. Settling restarts the dismiss
+   * timer because `updateToast` re-stamps `createdAt` whenever a duration is set.
+   * Returns the toast id plus the original promise so callers can still await it.
+   */
+  const promiseToast = useCallback(
+    <T,>(
+      promise: Promise<T> | (() => Promise<T>),
+      messages: ToastPromiseMessages<T>,
+    ): ToastPromiseResult<T> => {
+      const settledDuration = messages.duration ?? defaultDuration;
+      const loading: ToastInput = {
+        ...resolvePromiseContent(messages.loading),
+        status: "loading",
+        duration: 0,
+      };
+
+      let id: string;
+      const reuseId = messages.id;
+      if (reuseId) {
+        id = reuseId;
+        setToasts((current) => {
+          if (current.some((toast) => toast.id === reuseId)) {
+            return current.map((toast) =>
+              toast.id === reuseId
+                ? {
+                    ...toast,
+                    description: undefined,
+                    action: undefined,
+                    icon: undefined,
+                    ...loading,
+                    id: reuseId,
+                  }
+                : toast,
+            );
+          }
+          const next = [...current, createToast({ ...loading, id: reuseId }, defaultDuration)];
+          return typeof limit === "number" ? next.slice(-limit) : next;
+        });
+      } else {
+        id = showToast(loading);
+      }
+
+      const settle = (status: "success" | "error", content: ToastPromiseContent) => {
+        const resolved = resolvePromiseContent(content);
+        updateToast(id, {
+          // Drop loading-phase extras the settled copy does not restate.
+          description: undefined,
+          action: undefined,
+          icon: undefined,
+          ...resolved,
+          status,
+          duration: resolved.duration ?? settledDuration,
+        });
+      };
+
+      let result: Promise<T>;
+      try {
+        result = typeof promise === "function" ? promise() : promise;
+      } catch (error) {
+        result = Promise.reject(error);
+      }
+
+      // Attaching both handlers here also keeps a rejection from surfacing as
+      // unhandled when the caller ignores `result`.
+      result.then(
+        (data) => {
+          const { success } = messages;
+          settle("success", typeof success === "function" ? success(data) : success);
+        },
+        (error: unknown) => {
+          const { error: onError } = messages;
+          settle("error", typeof onError === "function" ? onError(error) : onError);
+        },
+      );
+
+      return { id, result };
+    },
+    [defaultDuration, limit, showToast, updateToast],
+  );
 
   useEffect(() => {
     const activeIds = new Set(toasts.map((toast) => toast.id));
@@ -246,11 +366,12 @@ export function useAnimatedToastStack({
       toasts,
       showToast,
       updateToast,
+      promiseToast,
       dismissToast,
       clearToasts,
       setToasts,
     }),
-    [clearToasts, dismissToast, showToast, toasts, updateToast],
+    [clearToasts, dismissToast, promiseToast, showToast, toasts, updateToast],
   );
 }
 
@@ -425,7 +546,9 @@ const ToastItem = memo(function ToastItem({
               </AnimatePresence>
             </motion.span>
 
-            <div className={cn("min-w-0 flex-1", classNames?.content)}>
+            {/* layout="position" keeps the copy from stretching while the item's
+                height morphs between phases (e.g. a promise toast settling). */}
+            <motion.div layout="position" className={cn("min-w-0 flex-1", classNames?.content)}>
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div
                   key={`${toast.id}-${status}-${String(toast.title)}`}
@@ -479,7 +602,7 @@ const ToastItem = memo(function ToastItem({
                   {toast.action.label}
                 </button>
               ) : null}
-            </div>
+            </motion.div>
 
             {canDismiss ? (
               <button

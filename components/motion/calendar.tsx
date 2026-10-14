@@ -15,6 +15,19 @@ import { EASE_OUT, SPRING_LAYOUT, SPRING_PRESS } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
 export type DateRange = { from: Date; to?: Date };
+/** A whole week row: `from` is its first day, `to` its seventh. */
+export type WeekRange = { from: Date; to: Date };
+
+/** Per-day extras from `getDayMeta`. */
+export type CalendarDayMeta = {
+  /** Short text under the day number (a price, a count). Cells grow taller
+   * when any day has meta; the label is also read after the date. */
+  label?: string;
+  /** "accent" tints the label (deals, highlights); "muted" fades it. */
+  tone?: "muted" | "accent";
+  /** Blocks the day and strikes it through, like `isDateDisabled`. */
+  disabled?: boolean;
+};
 
 type CalendarBaseProps = {
   /** Earliest selectable day (inclusive). */
@@ -36,6 +49,11 @@ type CalendarBaseProps = {
   /** Months shown side by side (stacked below `sm`). Default 1. With more
    * than one, days outside each month are left blank so none repeats. */
   numberOfMonths?: number;
+  /** Adds an ISO 8601 week-number column ("Wk") before each row. */
+  showWeekNumber?: boolean;
+  /** Per-day label, tone and blocking, e.g. nightly prices or booked days.
+   * Passing it switches the grid to taller cells that fit the label. */
+  getDayMeta?: (date: Date) => CalendarDayMeta | null | undefined;
   className?: string;
   "aria-label"?: string;
 };
@@ -52,6 +70,19 @@ export type CalendarRangeProps = CalendarBaseProps & {
   value?: DateRange | null;
   defaultValue?: DateRange | null;
   onValueChange?: (range: DateRange) => void;
+  /** Fewest nights (days between start and end) a finished range may span.
+   * While the end is being chosen, days too close are blocked. */
+  minNights?: number;
+  /** Most nights a finished range may span; farther days are blocked. */
+  maxNights?: number;
+};
+
+export type CalendarWeekProps = CalendarBaseProps & {
+  mode: "week";
+  value?: WeekRange | null;
+  defaultValue?: WeekRange | null;
+  /** Called with the picked day's whole row, honouring `weekStartsOn`. */
+  onValueChange?: (week: WeekRange) => void;
 };
 
 export type CalendarMultipleProps = CalendarBaseProps & {
@@ -67,6 +98,7 @@ export type CalendarMultipleProps = CalendarBaseProps & {
 export type CalendarProps =
   | CalendarSingleProps
   | CalendarRangeProps
+  | CalendarWeekProps
   | CalendarMultipleProps;
 
 // ── date helpers (local time, day precision) ──────────────────────────────
@@ -99,6 +131,16 @@ const dayKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const monthKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+/** Whole days from `a` to `b`; rounding absorbs DST hour shifts. */
+const daysBetween = (a: Date, b: Date) =>
+  Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / 86_400_000);
+/** ISO 8601 week number: weeks start Monday, week 1 holds Jan 4. */
+function isoWeek(d: Date) {
+  const thursday = addDays(d, 3 - ((d.getDay() + 6) % 7));
+  const jan4 = new Date(thursday.getFullYear(), 0, 4);
+  const firstThursday = addDays(jan4, 3 - ((jan4.getDay() + 6) % 7));
+  return 1 + Math.round(daysBetween(firstThursday, thursday) / 7);
+}
 
 /** Always 6 weeks, so the panel never changes height between months. */
 function buildWeeks(month: Date, weekStartsOn: number) {
@@ -115,11 +157,14 @@ const MONTH_ENTER = { duration: 0.26, ease: EASE_OUT } as const;
 const MONTH_EXIT = { duration: 0.16, ease: EASE_OUT } as const;
 
 /**
- * Month-grid calendar for single dates, ranges or several separate days, one
- * or more months wide. The selected day is a pill that glides between days on
- * a shared-layout spring; months slide in from the direction you travel. Full keyboard grid navigation (arrows, Home/End,
- * PageUp/PageDown, Shift+Page for years). Controlled or uncontrolled for both
- * the selection and the visible month; reduced-motion safe.
+ * Month-grid calendar for single dates, ranges, whole weeks or several
+ * separate days, one or more months wide. The selected day is a pill that
+ * glides between days on a shared-layout spring; a picked week is one pill
+ * across its row; months slide in from the direction you travel. Optional ISO
+ * week numbers, per-day labels (`getDayMeta`) and night limits for ranges.
+ * Full keyboard grid navigation (arrows, Home/End, PageUp/PageDown,
+ * Shift+Page for years). Controlled or uncontrolled for both the selection
+ * and the visible month; reduced-motion safe.
  */
 export function Calendar(props: CalendarProps) {
   const {
@@ -132,29 +177,38 @@ export function Calendar(props: CalendarProps) {
     defaultMonth,
     onMonthChange,
     numberOfMonths = 1,
+    showWeekNumber = false,
+    getDayMeta,
     className,
     "aria-label": ariaLabel,
   } = props;
   const isRange = props.mode === "range";
+  const isWeek = props.mode === "week";
   const isMultiple = props.mode === "multiple";
   const count = Math.max(1, Math.floor(numberOfMonths));
+  const minNights = isRange ? ((props as CalendarRangeProps).minNights ?? 0) : 0;
+  const maxNights = isRange ? (props as CalendarRangeProps).maxNights : undefined;
+  // Taller cells only when there is something to put under the number.
+  const tall = !!getDayMeta;
 
   const uid = useId();
   const reduce = useReducedMotion();
 
   // ── selection ──
   const [internalValue, setInternalValue] = useState<
-    Date | DateRange | Date[] | null
+    Date | DateRange | WeekRange | Date[] | null
   >(props.defaultValue ?? null);
   const valueControlled = props.value !== undefined;
   const value = valueControlled ? (props.value ?? null) : internalValue;
-  const single = isRange || isMultiple ? null : (value as Date | null);
+  const single =
+    isRange || isWeek || isMultiple ? null : (value as Date | null);
   const range = isRange ? (value as DateRange | null) : null;
+  const week = isWeek ? (value as WeekRange | null) : null;
   const picked = isMultiple ? ((value as Date[] | null) ?? []) : [];
   const isPicked = (d: Date) => picked.some((p) => sameDay(p, d));
 
   // ── visible months ──
-  const anchor = single ?? range?.from ?? picked[0] ?? null;
+  const anchor = single ?? range?.from ?? week?.from ?? picked[0] ?? null;
   const [internalMonth, setInternalMonth] = useState(() =>
     startOfMonth(defaultMonth ?? anchor ?? new Date()),
   );
@@ -191,6 +245,7 @@ export function Calendar(props: CalendarProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const shouldFocus = useRef(false);
   // Range hover preview: the band follows the pointer until the end is picked.
+  // In week mode it is the row under the pointer or keyboard focus.
   const [hovered, setHovered] = useState<Date | null>(null);
 
   // Keep the tab stop inside the visible months when they change by buttons.
@@ -214,14 +269,37 @@ export function Calendar(props: CalendarProps) {
     (d: Date) =>
       (minDate && d < startOfDay(minDate)) ||
       (maxDate && d > startOfDay(maxDate)) ||
-      !!isDateDisabled?.(d),
-    [minDate, maxDate, isDateDisabled],
+      !!isDateDisabled?.(d) ||
+      !!getDayMeta?.(d)?.disabled,
+    [minDate, maxDate, isDateDisabled, getDayMeta],
   );
 
+  // While a range end is being chosen, days that would make it too short or
+  // too long are blocked (earlier days stay open: they restart the range).
+  const choosingEnd = !!range && !range.to;
+  const nightsAllowed = (n: number) =>
+    n >= minNights && (maxNights === undefined || n <= maxNights);
+  const blockedByNights = (d: Date) =>
+    choosingEnd &&
+    !!range &&
+    d > range.from &&
+    !nightsAllowed(daysBetween(range.from, d));
+
+  const weekStart = (d: Date) =>
+    addDays(d, -((d.getDay() - weekStartsOn + 7) % 7));
+
   const select = (d: Date) => {
-    if (isDisabled(d)) return;
+    if (isDisabled(d) || blockedByNights(d)) return;
     if (!inWindow(d)) setMonth(d);
     setFocused(d);
+
+    if (isWeek) {
+      const from = weekStart(d);
+      const next: WeekRange = { from, to: addDays(from, 6) };
+      if (!valueControlled) setInternalValue(next);
+      (props as CalendarWeekProps).onValueChange?.(next);
+      return;
+    }
 
     if (isMultiple) {
       const max = (props as CalendarMultipleProps).max;
@@ -240,10 +318,14 @@ export function Calendar(props: CalendarProps) {
       (props as CalendarSingleProps).onValueChange?.(d);
       return;
     }
-    // First click starts a range; a later day closes it; an earlier day or a
-    // click on a finished range starts over.
+    // First click starts a range; a later day closes it; an earlier day, the
+    // start again when it would be too short, or a click on a finished range
+    // starts over.
     const next: DateRange =
-      range && !range.to && d >= range.from
+      range &&
+      !range.to &&
+      d >= range.from &&
+      nightsAllowed(daysBetween(range.from, d))
         ? { from: range.from, to: d }
         : { from: d };
     if (!valueControlled) setInternalValue(next);
@@ -320,10 +402,18 @@ export function Calendar(props: CalendarProps) {
     !!maxDate && startOfMonth(maxDate) <= lastMonth;
 
   // Range band end: the picked end, or the hovered day while choosing one.
+  // A day that can't close the range doesn't stretch the band to it.
   const bandEnd =
-    range && !range.to && hovered && hovered > range.from
+    range &&
+    !range.to &&
+    hovered &&
+    hovered > range.from &&
+    !isDisabled(hovered) &&
+    !blockedByNights(hovered)
       ? hovered
       : range?.to;
+  // Week mode: the row being previewed (pointer or keyboard focus).
+  const previewWeek = isWeek && hovered ? weekStart(hovered) : null;
 
   const navButton =
     "inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
@@ -331,6 +421,7 @@ export function Calendar(props: CalendarProps) {
   const months = Array.from({ length: count }, (_, i) => addMonths(month, i));
   // Weekday index of the column, so connecting bands stop at the row ends.
   const column = (d: Date) => (d.getDay() - weekStartsOn + 7) % 7;
+  const cellSize = tall ? "h-12 w-10" : "size-9";
 
   return (
     <div
@@ -429,12 +520,24 @@ export function Calendar(props: CalendarProps) {
                   >
                     <thead>
                       <tr>
+                        {showWeekNumber && (
+                          <th
+                            scope="col"
+                            abbr="Week"
+                            className="h-8 w-8 text-[11px] font-medium text-muted-foreground/70"
+                          >
+                            Wk
+                          </th>
+                        )}
                         {weekdays.map((w) => (
                           <th
                             key={w.long}
                             scope="col"
                             abbr={w.long}
-                            className="h-8 w-9 text-[11px] font-medium text-muted-foreground"
+                            className={cn(
+                              "h-8 text-[11px] font-medium text-muted-foreground",
+                              tall ? "w-10" : "w-9",
+                            )}
                           >
                             {w.short}
                           </th>
@@ -442,145 +545,262 @@ export function Calendar(props: CalendarProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {weeks.map((week) => (
-                        <tr key={dayKey(week[0])}>
-                          {week.map((d) => {
-                            const outside = !sameMonth(d, m);
-                            // Side-by-side months would show these days twice.
-                            if (outside && count > 1)
-                              return (
-                                <td key={dayKey(d)} className="p-0">
-                                  <span className="block size-9" />
-                                </td>
-                              );
-                            const disabled = isDisabled(d);
-                            const isToday = sameDay(d, today);
-                            const isFrom = sameDay(d, range?.from);
-                            const isTo = sameDay(d, bandEnd);
-                            const inBand =
-                              !!range?.from &&
-                              !!bandEnd &&
-                              d > range.from &&
-                              d < bandEnd;
-                            const chosen = isMultiple && isPicked(d);
-                            const selected = isRange
-                              ? isFrom || (isTo && !!range?.to)
-                              : isMultiple
-                                ? chosen
-                                : sameDay(d, single);
-                            const endpoint = isFrom || isTo;
-                            // Picked neighbours in the same row merge into one
-                            // pill, so a run of days reads as a block.
-                            const joinPrev =
-                              chosen &&
-                              column(d) > 0 &&
-                              sameMonth(addDays(d, -1), m) &&
-                              isPicked(addDays(d, -1));
-                            const joinNext =
-                              chosen &&
-                              column(d) < 6 &&
-                              sameMonth(addDays(d, 1), m) &&
-                              isPicked(addDays(d, 1));
-
-                            return (
-                              <td key={dayKey(d)} className="relative p-0">
-                                {(inBand ||
-                                  (endpoint &&
-                                    bandEnd &&
-                                    !sameDay(range?.from, bandEnd))) && (
-                                  <span
-                                    aria-hidden
-                                    className={cn(
-                                      "absolute inset-y-0.5 bg-primary/10",
-                                      inBand && "inset-x-0",
-                                      isFrom && "left-1/2 right-0",
-                                      isTo && "left-0 right-1/2",
-                                    )}
-                                  />
+                      {weeks.map((row) => {
+                        // Days this row actually draws: side-by-side months
+                        // leave the other month's days blank.
+                        const shown =
+                          count > 1 ? row.filter((d) => sameMonth(d, m)) : row;
+                        const weekSelected =
+                          !!week && sameDay(row[0], weekStart(week.from));
+                        const weekPreview =
+                          !weekSelected && sameDay(row[0], previewWeek);
+                        // ISO weeks run Monday–Sunday; the row's Thursday
+                        // decides which one a differently started row is.
+                        const thursday =
+                          row.find((d) => d.getDay() === 4) ?? row[0];
+                        return (
+                          <tr key={dayKey(row[0])}>
+                            {showWeekNumber && (
+                              <th
+                                scope="row"
+                                className={cn(
+                                  "p-0 text-center text-[11px] font-normal tabular-nums transition-colors",
+                                  weekSelected
+                                    ? "font-medium text-foreground"
+                                    : "text-muted-foreground/70",
                                 )}
-                                <button
-                                  type="button"
-                                  data-date={dayKey(d)}
-                                  tabIndex={
-                                    sameDay(d, focusInMonth) && !outside
-                                      ? 0
-                                      : -1
-                                  }
-                                  aria-label={dayLabel.format(d)}
-                                  aria-pressed={selected}
-                                  aria-disabled={disabled || undefined}
-                                  aria-current={isToday ? "date" : undefined}
-                                  onClick={() => select(d)}
-                                  onFocus={() => setFocused(d)}
-                                  onPointerEnter={() =>
-                                    isRange && setHovered(d)
-                                  }
-                                  className={cn(
-                                    "relative isolate flex size-9 items-center justify-center rounded-lg text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                                    outside
-                                      ? "text-muted-foreground/50"
-                                      : "text-foreground",
-                                    !selected && !disabled && "hover:bg-muted",
-                                    selected && "text-primary-foreground",
-                                    isTo && !range?.to && "text-foreground",
-                                    disabled &&
-                                      "cursor-not-allowed text-muted-foreground/40 line-through",
-                                  )}
-                                >
-                                  {selected &&
-                                    (isRange || isMultiple ? (
-                                      <motion.span
-                                        aria-hidden
-                                        initial={
-                                          reduce ? false : { scale: 0.7 }
-                                        }
-                                        animate={{ scale: 1 }}
-                                        transition={SPRING_PRESS}
-                                        className={cn(
-                                          "absolute inset-0 -z-10 rounded-lg bg-primary",
-                                          joinPrev && "rounded-l-none",
-                                          joinNext && "rounded-r-none",
-                                        )}
-                                      />
-                                    ) : (
-                                      <motion.span
-                                        aria-hidden
-                                        // Scoped per month so the pill glides
-                                        // between days but never across the
-                                        // sliding grids.
-                                        layoutId={`${uid}-${mk}-selected`}
-                                        transition={
-                                          reduce
-                                            ? { duration: 0 }
-                                            : SPRING_LAYOUT
-                                        }
-                                        className="absolute inset-0 -z-10 rounded-lg bg-primary"
-                                      />
-                                    ))}
-                                  {isTo && !range?.to && (
-                                    <span
-                                      aria-hidden
-                                      className="absolute inset-0 -z-10 rounded-lg border border-primary/40"
-                                    />
-                                  )}
-                                  {d.getDate()}
-                                  {isToday && (
+                              >
+                                {shown.length > 0 ? isoWeek(thursday) : null}
+                              </th>
+                            )}
+                            {row.map((d) => {
+                              const outside = !sameMonth(d, m);
+                              // Side-by-side months would show these days twice.
+                              if (outside && count > 1)
+                                return (
+                                  <td key={dayKey(d)} className="p-0">
+                                    <span className={cn("block", cellSize)} />
+                                  </td>
+                                );
+                              const meta = getDayMeta?.(d) ?? null;
+                              const disabled = isDisabled(d);
+                              const nightsBlocked =
+                                !disabled && blockedByNights(d);
+                              const isToday = sameDay(d, today);
+                              const isFrom = sameDay(d, range?.from);
+                              const isTo = sameDay(d, bandEnd);
+                              const inBand =
+                                !!range?.from &&
+                                !!bandEnd &&
+                                d > range.from &&
+                                d < bandEnd;
+                              const chosen = isMultiple && isPicked(d);
+                              const inWeek =
+                                !!week &&
+                                d >= startOfDay(week.from) &&
+                                d <= startOfDay(week.to);
+                              const selected = isRange
+                                ? isFrom || (isTo && !!range?.to)
+                                : isWeek
+                                  ? inWeek
+                                  : isMultiple
+                                    ? chosen
+                                    : sameDay(d, single);
+                              const endpoint = isFrom || isTo;
+                              // Picked neighbours in the same row merge into one
+                              // pill, so a run of days reads as a block.
+                              const joinPrev =
+                                chosen &&
+                                column(d) > 0 &&
+                                sameMonth(addDays(d, -1), m) &&
+                                isPicked(addDays(d, -1));
+                              const joinNext =
+                                chosen &&
+                                column(d) < 6 &&
+                                sameMonth(addDays(d, 1), m) &&
+                                isPicked(addDays(d, 1));
+                              // The week pill lives in the row's first drawn
+                              // cell and spans every drawn day after it.
+                              const weekPill =
+                                isWeek &&
+                                (weekSelected || weekPreview) &&
+                                sameDay(d, shown[0]);
+
+                              return (
+                                <td key={dayKey(d)} className="relative p-0">
+                                  {(inBand ||
+                                    (endpoint &&
+                                      bandEnd &&
+                                      !sameDay(range?.from, bandEnd))) && (
                                     <span
                                       aria-hidden
                                       className={cn(
-                                        "absolute bottom-1 size-1 rounded-full",
-                                        selected
-                                          ? "bg-primary-foreground"
-                                          : "bg-primary",
+                                        "absolute inset-y-0.5 bg-primary/10",
+                                        inBand && "inset-x-0",
+                                        isFrom && "left-1/2 right-0",
+                                        isTo && "left-0 right-1/2",
                                       )}
                                     />
                                   )}
-                                </button>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
+                                  {weekPill && (
+                                    <motion.span
+                                      aria-hidden
+                                      // Selected and previewed rows each glide
+                                      // between weeks, scoped per month.
+                                      layoutId={`${uid}-${mk}-${weekSelected ? "week" : "week-preview"}`}
+                                      transition={
+                                        reduce ? { duration: 0 } : SPRING_LAYOUT
+                                      }
+                                      style={{ width: `${shown.length * 100}%` }}
+                                      className={cn(
+                                        "pointer-events-none absolute inset-y-0 left-0 rounded-lg",
+                                        weekSelected ? "bg-primary" : "bg-muted",
+                                      )}
+                                    />
+                                  )}
+                                  <button
+                                    type="button"
+                                    data-date={dayKey(d)}
+                                    tabIndex={
+                                      sameDay(d, focusInMonth) && !outside
+                                        ? 0
+                                        : -1
+                                    }
+                                    aria-label={
+                                      meta?.label
+                                        ? `${dayLabel.format(d)}, ${meta.label}`
+                                        : dayLabel.format(d)
+                                    }
+                                    aria-pressed={selected}
+                                    aria-disabled={
+                                      disabled || nightsBlocked || undefined
+                                    }
+                                    aria-current={isToday ? "date" : undefined}
+                                    title={
+                                      nightsBlocked
+                                        ? daysBetween(range?.from ?? d, d) <
+                                          minNights
+                                          ? `Minimum ${minNights} nights`
+                                          : `Maximum ${maxNights} nights`
+                                        : undefined
+                                    }
+                                    onClick={() => select(d)}
+                                    onFocus={() => {
+                                      setFocused(d);
+                                      if (isWeek) setHovered(d);
+                                    }}
+                                    onBlur={() => isWeek && setHovered(null)}
+                                    onPointerEnter={() =>
+                                      (isRange || isWeek) && setHovered(d)
+                                    }
+                                    className={cn(
+                                      "relative isolate flex items-center justify-center rounded-lg text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                                      cellSize,
+                                      tall && "flex-col gap-0.5",
+                                      outside
+                                        ? "text-muted-foreground/50"
+                                        : "text-foreground",
+                                      !selected &&
+                                        !disabled &&
+                                        !nightsBlocked &&
+                                        !isWeek &&
+                                        "hover:bg-muted",
+                                      selected && "text-primary-foreground",
+                                      selected &&
+                                        outside &&
+                                        "text-primary-foreground/60",
+                                      isTo && !range?.to && "text-foreground",
+                                      nightsBlocked &&
+                                        "cursor-not-allowed text-muted-foreground/40",
+                                      disabled &&
+                                        "cursor-not-allowed text-muted-foreground/40 line-through",
+                                    )}
+                                  >
+                                    {selected &&
+                                      !isWeek &&
+                                      (isRange || isMultiple ? (
+                                        <motion.span
+                                          aria-hidden
+                                          initial={
+                                            reduce ? false : { scale: 0.7 }
+                                          }
+                                          animate={{ scale: 1 }}
+                                          transition={SPRING_PRESS}
+                                          className={cn(
+                                            "absolute inset-0 -z-10 rounded-lg bg-primary",
+                                            joinPrev && "rounded-l-none",
+                                            joinNext && "rounded-r-none",
+                                          )}
+                                        />
+                                      ) : (
+                                        <motion.span
+                                          aria-hidden
+                                          // Scoped per month so the pill glides
+                                          // between days but never across the
+                                          // sliding grids.
+                                          layoutId={`${uid}-${mk}-selected`}
+                                          transition={
+                                            reduce
+                                              ? { duration: 0 }
+                                              : SPRING_LAYOUT
+                                          }
+                                          className="absolute inset-0 -z-10 rounded-lg bg-primary"
+                                        />
+                                      ))}
+                                    {isTo && !range?.to && (
+                                      <span
+                                        aria-hidden
+                                        className="absolute inset-0 -z-10 rounded-lg border border-primary/40"
+                                      />
+                                    )}
+                                    {tall ? (
+                                      <span className="leading-none">
+                                        {d.getDate()}
+                                      </span>
+                                    ) : (
+                                      d.getDate()
+                                    )}
+                                    {tall && (
+                                      <span
+                                        aria-hidden
+                                        className={cn(
+                                          "h-2.5 text-[10px] leading-none",
+                                          meta?.tone === "accent"
+                                            ? // Tinted toward the foreground so
+                                              // the green keeps contrast on
+                                              // light and dark cards.
+                                              "font-medium text-[color:color-mix(in_oklab,var(--chart-3)_70%,var(--foreground))]"
+                                            : meta?.tone === "muted"
+                                              ? "text-muted-foreground/60"
+                                              : "text-muted-foreground",
+                                          selected &&
+                                            "text-primary-foreground/75",
+                                          (disabled || nightsBlocked) &&
+                                            "text-muted-foreground/40",
+                                        )}
+                                      >
+                                        {meta?.label}
+                                      </span>
+                                    )}
+                                    {isToday && (
+                                      <span
+                                        aria-hidden
+                                        className={cn(
+                                          "absolute size-1 rounded-full",
+                                          tall ? "top-1.5 right-1.5" : "bottom-1",
+                                          selected
+                                            ? "bg-primary-foreground"
+                                            : "bg-primary",
+                                        )}
+                                      />
+                                    )}
+                                  </button>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </motion.table>
                 </AnimatePresence>
