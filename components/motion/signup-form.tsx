@@ -14,7 +14,16 @@ import { StatefulButton } from "@/components/motion/button";
 import { Checkbox } from "@/components/motion/checkbox";
 import { Input } from "@/components/motion/input";
 import { EASE_OUT, SPRING_LAYOUT } from "@/lib/ease";
+import {
+  MIN_PASSWORD_LENGTH,
+  passwordStrength,
+  STRENGTH_COLORS,
+  STRENGTH_LABELS,
+} from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
+
+// Re-exported so existing `passwordStrength` imports from this module keep working.
+export { passwordStrength } from "@/lib/password-strength";
 
 export type SignUpStatus = "idle" | "loading" | "success" | "error";
 
@@ -74,40 +83,6 @@ const EMPTY_VALUES: SignUpValues = {
 // Deliberately permissive. Full RFC 5322 matching is impractical in a regex and
 // rejects addresses that deliver fine; the only real check is sending mail.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const MIN_PASSWORD_LENGTH = 8;
-
-const STRENGTH_LABELS = ["Too short", "Weak", "Fair", "Good", "Strong"] as const;
-
-const STRENGTH_COLORS = [
-  "bg-destructive",
-  "bg-destructive",
-  "bg-amber-500",
-  "bg-amber-400",
-  "bg-(--color-success)",
-] as const;
-
-/**
- * Length-weighted strength score, 0-4. NIST SP 800-63B advises against
- * composition requirements and treats length as the dominant factor, so extra
- * character classes only nudge the score — they can't rescue a short password.
- * This is a heuristic for feedback, not entropy estimation; pair it with a
- * breach-list check server-side for anything real.
- */
-export function passwordStrength(password: string): number {
-  if (password.length < MIN_PASSWORD_LENGTH) return 0;
-
-  let score = 1;
-  if (password.length >= 12) score += 1;
-  if (password.length >= 16) score += 1;
-
-  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((pattern) =>
-    pattern.test(password),
-  ).length;
-  if (classes >= 3) score += 1;
-
-  return Math.min(score, 4);
-}
 
 function defaultValidate(values: SignUpValues): SignUpErrors {
   const errors: SignUpErrors = {};

@@ -593,6 +593,72 @@ export const previews: Record<string, ComponentType> = {
   "blocks/pricing-table": dynamic(() =>
     import("./blocks/pricing-table.preview").then((m) => m.PricingTablePreview),
   ),
+  "motion/dropdown-menu": dynamic(() =>
+    import("./motion/dropdown-menu.preview").then((m) => m.DropdownMenuPreview),
+  ),
+  "motion/hover-card": dynamic(() =>
+    import("./motion/hover-card.preview").then((m) => m.HoverCardPreview),
+  ),
+  "motion/kbd": dynamic(() =>
+    import("./motion/kbd.preview").then((m) => m.KbdPreview),
+  ),
+  "motion/dialog": dynamic(() =>
+    import("./motion/dialog.preview").then((m) => m.DialogPreview),
+  ),
+  "motion/alert": dynamic(() =>
+    import("./motion/alert.preview").then((m) => m.AlertPreview),
+  ),
+  "blocks/cookie-consent": dynamic(() =>
+    import("./blocks/cookie-consent.preview").then((m) => m.CookieConsentPreview),
+  ),
+  "motion/progress": dynamic(() =>
+    import("./motion/progress.preview").then((m) => m.ProgressPreview),
+  ),
+  "motion/skeleton": dynamic(() =>
+    import("./motion/skeleton.preview").then((m) => m.SkeletonPreview),
+  ),
+  "motion/empty-state": dynamic(() =>
+    import("./motion/empty-state.preview").then((m) => m.EmptyStatePreview),
+  ),
+  "motion/breadcrumb": dynamic(() =>
+    import("./motion/breadcrumb.preview").then((m) => m.BreadcrumbPreview),
+  ),
+  "motion/segmented-control": dynamic(() =>
+    import("./motion/segmented-control.preview").then((m) => m.SegmentedControlPreview),
+  ),
+  "blocks/navigation-menu": dynamic(() =>
+    import("./blocks/navigation-menu.preview").then((m) => m.NavigationMenuPreview),
+  ),
+  "motion/multi-select": dynamic(() =>
+    import("./motion/multi-select.preview").then((m) => m.MultiSelectPreview),
+  ),
+  "motion/phone-input": dynamic(() =>
+    import("./motion/phone-input.preview").then((m) => m.PhoneInputPreview),
+  ),
+  "motion/password-input": dynamic(() =>
+    import("./motion/password-input.preview").then((m) => m.PasswordInputPreview),
+  ),
+  "blocks/bento-grid": dynamic(() =>
+    import("./blocks/bento-grid.preview").then((m) => m.BentoGridPreview),
+  ),
+  "blocks/stat-card": dynamic(() =>
+    import("./blocks/stat-card.preview").then((m) => m.StatCardPreview),
+  ),
+  "blocks/notification-center": dynamic(() =>
+    import("./blocks/notification-center.preview").then((m) => m.NotificationCenterPreview),
+  ),
+  "blocks/faq-section": dynamic(() =>
+    import("./blocks/faq-section.preview").then((m) => m.FaqSectionPreview),
+  ),
+  "blocks/testimonial-wall": dynamic(() =>
+    import("./blocks/testimonial-wall.preview").then((m) => m.TestimonialWallPreview),
+  ),
+  "blocks/hero-section": dynamic(() =>
+    import("./blocks/hero-section.preview").then((m) => m.HeroSectionPreview),
+  ),
+  "blocks/footer-section": dynamic(() =>
+    import("./blocks/footer-section.preview").then((m) => m.FooterSectionPreview),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {
