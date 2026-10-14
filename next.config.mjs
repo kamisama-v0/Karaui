@@ -84,14 +84,6 @@ const LEGACY_COMPONENT_REDIRECTS = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Self-contained server for the Docker image (see Dockerfile).
-  output: "standalone",
-  // The home server builds with 1.8 GB RAM; every static-generation worker
-  // holds its own heap. The Dockerfile sets NEXT_BUILD_CPUS=1 so pages render
-  // in a single worker there, while other machines keep Next's default.
-  ...(process.env.NEXT_BUILD_CPUS && {
-    experimental: { cpus: Number(process.env.NEXT_BUILD_CPUS) },
-  }),
   images: {
     remotePatterns: [
       {
