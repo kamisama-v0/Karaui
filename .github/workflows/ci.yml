@@ -1,7 +1,9 @@
 name: CI
 
-# Pushes to main are checked by deploy.yml before deploying.
+# Vercel builds and deploys; this workflow only gates main and pull requests.
 on:
+  push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -21,5 +23,7 @@ jobs:
       - name: Typecheck and validate registry
         run: bun run check
 
-      - name: Accessibility tests
-        run: bun test
+      # The production registry.json test fetches the live site, which can lag
+      # behind the commit being checked, so it is skipped here.
+      - name: Tests
+        run: bun test --test-name-pattern '^(?!.*production registry\.json).*$'
