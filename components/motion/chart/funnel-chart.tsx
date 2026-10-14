@@ -2,7 +2,6 @@
 
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useRef, useState } from "react";
-import useMeasure from "react-use-measure";
 import {
   ChartTable,
   ChartTooltip,
@@ -10,6 +9,7 @@ import {
   GROW,
   seriesColor,
   stepIndex,
+  useChartWidth,
 } from "@/components/motion/chart/shared";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +58,7 @@ export function FunnelChart({
   className,
 }: FunnelChartProps) {
   const reduce = useReducedMotion();
-  const [measureRef, { width }] = useMeasure();
+  const [measureRef, width] = useChartWidth();
   const viewRef = useRef<HTMLDivElement>(null);
   const inView = useInView(viewRef, { once: true, amount: 0.3 });
   const [active, setActive] = useState<number | null>(null);

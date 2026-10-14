@@ -35,9 +35,13 @@ export function LandingComponentCard({
     once: true,
     margin: "0px",
   });
+  // Entries made of examples (chart, not-found…) have no preview of their
+  // own, so fall back to the first example's.
+  const fallbackKey = component.examples?.[0]?.previewKey;
   const Preview = previewKey
     ? previews[previewKey]
-    : getPreview(category, component.slug);
+    : (getPreview(category, component.slug) ??
+      (fallbackKey ? previews[fallbackKey] : undefined));
   const [hover, setHover] = useState(false);
   const feature = variant === "feature";
 

@@ -2,8 +2,11 @@
 
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useId, useRef } from "react";
-import useMeasure from "react-use-measure";
-import { formatFull, GROW } from "@/components/motion/chart/shared";
+import {
+  formatFull,
+  GROW,
+  useChartWidth,
+} from "@/components/motion/chart/shared";
 import { cn } from "@/lib/utils";
 
 export interface SparklineProps {
@@ -39,7 +42,7 @@ export function Sparkline({
 }: SparklineProps) {
   const uid = useId();
   const reduce = useReducedMotion();
-  const [measureRef, { width }] = useMeasure();
+  const [measureRef, width] = useChartWidth();
   const viewRef = useRef<HTMLDivElement>(null);
   const inView = useInView(viewRef, { once: true, amount: 0.5 });
   const shown = reduce || inView;

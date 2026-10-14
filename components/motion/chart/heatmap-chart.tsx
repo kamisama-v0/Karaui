@@ -8,13 +8,13 @@ import {
   useRef,
   useState,
 } from "react";
-import useMeasure from "react-use-measure";
 import {
   ChartTable,
   ChartTooltip,
   formatFull,
   GROW,
   seriesColor,
+  useChartWidth,
 } from "@/components/motion/chart/shared";
 import { cn } from "@/lib/utils";
 
@@ -99,7 +99,7 @@ export function HeatmapChart({
   className,
 }: HeatmapChartProps) {
   const reduce = useReducedMotion();
-  const [measureRef, { width }] = useMeasure();
+  const [measureRef, width] = useChartWidth();
   const viewRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inView = useInView(viewRef, { once: true, amount: 0.3 });

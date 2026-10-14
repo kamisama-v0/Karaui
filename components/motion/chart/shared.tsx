@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { EASE_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +30,25 @@ export function seriesColor(series: { color?: string }, index: number) {
   if (series.color) return series.color;
   const slot = index % SLOT_FALLBACKS.length;
   return `var(--chart-${slot + 1}, ${SLOT_FALLBACKS[slot]})`;
+}
+
+/**
+ * Layout width of the element given the returned ref. ResizeObserver reports
+ * the untransformed box, unlike getBoundingClientRect (react-use-measure), so a
+ * chart inside a scaled container (thumbnails, zoomed stages) still fills it.
+ */
+export function useChartWidth<T extends Element = HTMLDivElement>() {
+  const [el, setEl] = useState<T | null>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setWidth(entry.contentRect.width),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [el]);
+  return [setEl, width] as const;
 }
 
 // A fixed locale keeps server and client output identical for hydration.

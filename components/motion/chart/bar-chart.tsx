@@ -2,7 +2,6 @@
 
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useRef, useState } from "react";
-import useMeasure from "react-use-measure";
 import {
   type ChartDatum,
   ChartLegend,
@@ -18,6 +17,7 @@ import {
   seriesColor,
   stepIndex,
   type TooltipIndicator,
+  useChartWidth,
 } from "@/components/motion/chart/shared";
 import { cn } from "@/lib/utils";
 
@@ -92,7 +92,7 @@ export function BarChart({
   className,
 }: BarChartProps) {
   const reduce = useReducedMotion();
-  const [measureRef, { width }] = useMeasure();
+  const [measureRef, width] = useChartWidth();
   const viewRef = useRef<HTMLDivElement>(null);
   const inView = useInView(viewRef, { once: true, amount: 0.3 });
   const [active, setActive] = useState<number | null>(null);
