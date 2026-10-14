@@ -13,7 +13,6 @@
 <p align="center">
   <a href="https://github.com/kamisama-v0/Karaui/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/kamisama-v0/Karaui?color=000000&style=flat-square" /></a>
   <a href="https://github.com/kamisama-v0/Karaui/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/kamisama-v0/Karaui?color=000000&style=flat-square" /></a>
-  <a href="https://github.com/kamisama-v0/Karaui/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kamisama-v0/Karaui/ci.yml?branch=main&color=000000&style=flat-square" /></a>
   <a href="https://ui.shadcn.com/docs/registry"><img alt="shadcn compatible" src="https://img.shields.io/badge/shadcn-compatible-000000?style=flat-square" /></a>
 </p>
 
