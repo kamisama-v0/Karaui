@@ -840,6 +840,223 @@ export const registry: CategoryEntry[] = [
             previewKey: "motion/sparkline",
             previewFile: "components/previews/motion/sparkline.preview.tsx",
           },
+          {
+            slug: "heatmap",
+            name: "Heatmap Chart",
+            description:
+              "GitHub-style contribution calendar; cells fade in week by week and arrow keys read each day.",
+            installSlug: "chart-heatmap",
+            file: "components/motion/chart/heatmap-chart.tsx",
+            previewKey: "motion/chart-heatmap",
+            previewFile: "components/previews/motion/chart-heatmap.preview.tsx",
+          },
+          {
+            slug: "gauge",
+            name: "Gauge Chart",
+            description:
+              "Arc meter with threshold bands; the fill and a springy needle swing to the value together.",
+            installSlug: "chart-gauge",
+            file: "components/motion/chart/gauge-chart.tsx",
+            previewKey: "motion/chart-gauge",
+            previewFile: "components/previews/motion/chart-gauge.preview.tsx",
+          },
+          {
+            slug: "funnel",
+            name: "Funnel Chart",
+            description:
+              "Horizontal conversion funnel whose stages grow in one by one; hovering a stage reads its step conversion.",
+            installSlug: "chart-funnel",
+            file: "components/motion/chart/funnel-chart.tsx",
+            previewKey: "motion/chart-funnel",
+            previewFile: "components/previews/motion/chart-funnel.preview.tsx",
+          },
+        ],
+      },
+      {
+        slug: "sortable-list",
+        name: "Sortable List",
+        description:
+          "Drag-to-reorder list where only the grip handle lifts a row, the lifted row rises with a soft shadow and slight scale while its siblings spring out of the way, and a full keyboard path (Space to pick up, arrows to move, Space to drop, Escape to restore) announces every move to screen readers. Generic over any item with an id, controlled/uncontrolled, reduced-motion safe.",
+        file: "components/motion/sortable-list.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react sortable list",
+          "drag and drop reorder",
+          "reorderable list",
+          "accessible drag and drop",
+          "framer motion reorder",
+          "shadcn sortable",
+        ],
+      },
+      {
+        slug: "tree-view",
+        name: "Tree View",
+        description:
+          "Keyboard-first WAI-ARIA tree with spring-rotating chevrons, height-morphing nested groups, indent guide lines, a selection pill that glides between rows via shared layout, typeahead, and controlled or uncontrolled selection and expansion.",
+        file: "components/motion/tree-view.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react tree view",
+          "file tree component",
+          "animated tree view",
+          "accessible treeview",
+          "file explorer react",
+          "nested navigation",
+        ],
+      },
+      {
+        slug: "resizable-panels",
+        name: "Resizable Panels",
+        description:
+          "Horizontal or vertical split panes with pointer-captured drag handles, per-panel min/max sizes, collapsible panels that spring shut below a threshold, double-click reset, nestable layouts, and keyboard-resizable separators.",
+        file: "components/motion/resizable-panels.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react resizable panels",
+          "split pane",
+          "resizable layout",
+          "collapsible sidebar",
+          "drag to resize",
+          "panel group",
+        ],
+      },
+      {
+        slug: "image-compare",
+        name: "Image Compare",
+        description:
+          "Before/after comparison whose top layer is clipped by a spring-smoothed clip-path divider, with a draggable knob, optional hover-follow mode, edge-fading labels, keyboard slider control, and images or any React node on either side.",
+        file: "components/motion/image-compare.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "image comparison slider",
+          "before after slider",
+          "react image compare",
+          "comparison divider",
+          "image diff",
+          "photo compare",
+        ],
+      },
+      {
+        slug: "timeline",
+        name: "Timeline",
+        description:
+          "Vertical changelog timeline whose connector line draws with scroll progress, with dots that pop in, content that slides into view, done/current/upcoming states, a pulsing ring on the current step, and a static line under reduced motion.",
+        file: "components/motion/timeline.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react timeline",
+          "animated timeline",
+          "changelog component",
+          "scroll animation timeline",
+          "roadmap timeline",
+          "vertical timeline",
+        ],
+      },
+      {
+        slug: "tag-input",
+        name: "Tag Input",
+        description:
+          "Chip field where Enter, comma or Tab adds a tag that springs in while the rest glide aside via shared layout, with Backspace-twice removal, arrow-key chip navigation, a filtered keyboard-navigable suggestion combobox, max tags, duplicate prevention and a shake on validation rejection; controlled/uncontrolled, reduced-motion safe.",
+        file: "components/motion/tag-input.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "tag input",
+          "chips input",
+          "multi value input",
+          "react tags",
+          "token input",
+          "autocomplete tags",
+        ],
+      },
+      {
+        slug: "color-picker",
+        name: "Color Picker",
+        description:
+          "HSV color picker with a 2D saturation/brightness area, hue and optional alpha sliders whose thumbs spring to a clicked point and follow drags 1:1, a validated hex field, preset swatches with a gliding selection ring and a ColorPickerPopover trigger mode; keyboard accessible, dependency-free color math.",
+        file: "components/motion/color-picker.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "color picker",
+          "react color picker",
+          "hex color input",
+          "hue slider",
+          "alpha slider",
+          "color swatches",
+        ],
+      },
+      {
+        slug: "rating",
+        name: "Rating",
+        description:
+          "Star rating radiogroup with hover preview fill, a staggered spring bounce on pick, optional half-star precision from the pointer position, click-to-clear, arrow/Home/End keyboard control, custom icons and a read-only display mode; controlled/uncontrolled, reduced-motion safe.",
+        file: "components/motion/rating.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "star rating",
+          "rating input",
+          "react rating",
+          "half star rating",
+          "review stars",
+          "feedback rating",
+        ],
+      },
+      {
+        slug: "number-stepper",
+        name: "Number Stepper",
+        description:
+          "Spinbutton with −/+ controls whose digits roll in the direction of change, press-and-hold repeat that accelerates, direct typing, arrow/Page/Home/End keys, min/max/step with a shake when pushed past a bound, and Intl.NumberFormat formatting; controlled/uncontrolled.",
+        file: "components/motion/number-stepper.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "number stepper",
+          "quantity input",
+          "number input",
+          "spinbutton",
+          "counter input",
+          "increment decrement",
+        ],
+      },
+      {
+        slug: "pagination",
+        name: "Pagination",
+        description:
+          "Page navigation with sibling and boundary ellipsis logic, a spring-gliding active pill, numbers that roll as the window shifts, arrow-nudge prev/next controls, and a compact dots variant.",
+        file: "components/motion/pagination.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react animated pagination",
+          "pagination ellipsis component",
+          "shadcn pagination motion",
+          "pagination dots indicator",
+          "table pagination react",
+          "page navigation animation",
+        ],
+      },
+      {
+        slug: "copy-button",
+        name: "Copy Button",
+        description:
+          "Copy-to-clipboard button with a blur-and-scale copy-to-check icon morph, optional rolling Copy/Copied label, execCommand fallback, error state, and screen reader announcements.",
+        file: "components/motion/copy-button.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react copy to clipboard button",
+          "animated copy button",
+          "copy icon check animation",
+          "clipboard button shadcn",
+          "copy code button react",
+          "copy api key button",
         ],
       },
       {
@@ -1013,6 +1230,24 @@ export const registry: CategoryEntry[] = [
     description:
       "Animated React components for agent reasoning, progress, tool activity, and conversational AI interfaces.",
     components: [
+      {
+        slug: "voice-input",
+        name: "Voice Input",
+        guide: agentGuides["voice-input"],
+        description:
+          "A mic button that morphs into a recording pill with a live Web Audio waveform, elapsed timer, cancel and confirm actions, a shimmering transcription state, and graceful permission-denied fallback.",
+        file: "components/agents/voice-input.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "AI voice input React",
+          "speech to text button",
+          "audio waveform recorder",
+          "voice prompt component",
+          "microphone recording UI",
+          "Web Speech API React",
+        ],
+      },
       {
         slug: "message-bubble",
         name: "Message Bubble",
@@ -1531,6 +1766,23 @@ export const registry: CategoryEntry[] = [
     description:
       "Product-ready animated React UI blocks built with Motion and Tailwind CSS, available as customizable copy-paste source.",
     components: [
+      {
+        slug: "kanban-board",
+        name: "Kanban Board",
+        description:
+          "Task board whose cards drag within and across columns, opening a dashed drop slot where they will land, lighting up the column underneath and flying into place via shared layout. Space, arrows and Escape move cards from the keyboard with live announcements. Columns show count badges, cards carry tags, assignee initials and a priority dot, and on mobile the columns scroll horizontally with snap. Controlled/uncontrolled, reduced-motion safe.",
+        file: "components/motion/kanban-board.tsx",
+        badge: "new",
+        launchedAt: "2026-10-14",
+        keywords: [
+          "react kanban board",
+          "drag and drop kanban",
+          "trello clone react",
+          "task board component",
+          "project management ui",
+          "shadcn kanban",
+        ],
+      },
       {
         slug: "infinite-masonry",
         name: "Infinite Masonry",

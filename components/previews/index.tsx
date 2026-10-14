@@ -496,6 +496,54 @@ export const previews: Record<string, ComponentType> = {
   "motion/loader": dynamic(() =>
     import("./motion/loader.preview").then((m) => m.LoaderPreview),
   ),
+  "motion/sortable-list": dynamic(() =>
+    import("./motion/sortable-list.preview").then((m) => m.SortableListPreview),
+  ),
+  "motion/tree-view": dynamic(() =>
+    import("./motion/tree-view.preview").then((m) => m.TreeViewPreview),
+  ),
+  "motion/resizable-panels": dynamic(() =>
+    import("./motion/resizable-panels.preview").then((m) => m.ResizablePanelsPreview),
+  ),
+  "motion/image-compare": dynamic(() =>
+    import("./motion/image-compare.preview").then((m) => m.ImageComparePreview),
+  ),
+  "motion/timeline": dynamic(() =>
+    import("./motion/timeline.preview").then((m) => m.TimelinePreview),
+  ),
+  "motion/tag-input": dynamic(() =>
+    import("./motion/tag-input.preview").then((m) => m.TagInputPreview),
+  ),
+  "motion/color-picker": dynamic(() =>
+    import("./motion/color-picker.preview").then((m) => m.ColorPickerPreview),
+  ),
+  "motion/rating": dynamic(() =>
+    import("./motion/rating.preview").then((m) => m.RatingPreview),
+  ),
+  "motion/number-stepper": dynamic(() =>
+    import("./motion/number-stepper.preview").then((m) => m.NumberStepperPreview),
+  ),
+  "motion/pagination": dynamic(() =>
+    import("./motion/pagination.preview").then((m) => m.PaginationPreview),
+  ),
+  "motion/copy-button": dynamic(() =>
+    import("./motion/copy-button.preview").then((m) => m.CopyButtonPreview),
+  ),
+  "agents/voice-input": dynamic(() =>
+    import("./agents/voice-input.preview").then((m) => m.VoiceInputPreview),
+  ),
+  "blocks/kanban-board": dynamic(() =>
+    import("./blocks/kanban-board.preview").then((m) => m.KanbanBoardPreview),
+  ),
+  "motion/chart-heatmap": dynamic(() =>
+    import("./motion/chart-heatmap.preview").then((m) => m.ChartHeatmapPreview),
+  ),
+  "motion/chart-gauge": dynamic(() =>
+    import("./motion/chart-gauge.preview").then((m) => m.ChartGaugePreview),
+  ),
+  "motion/chart-funnel": dynamic(() =>
+    import("./motion/chart-funnel.preview").then((m) => m.ChartFunnelPreview),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {

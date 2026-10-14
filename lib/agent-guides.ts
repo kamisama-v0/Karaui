@@ -1464,4 +1464,85 @@ export const agentGuides = {
         "Real tasks, execution events, elapsed stages, or tool output are available and can communicate progress more honestly.",
     },
   },
+  "voice-input": {
+    seo: {
+      title: "AI Voice Input · React Component",
+      description:
+        "A React voice input for AI apps: a mic button that morphs into a recording pill with a live waveform, timer, cancel and confirm actions, and delegated speech-to-text.",
+    },
+    introduction:
+      "Voice input lets a person speak an instruction instead of typing it. It owns microphone access, recording feedback, and the handoff to transcription, while the application decides which speech-to-text service turns audio into the prompt.",
+    composition: {
+      description:
+        "Place the voice control beside or inside the composer so a finished transcript lands in the same draft the person would otherwise type.",
+      tree: "Chat\n├── MessageScroller\n└── PromptInput\n    └── VoiceInput",
+    },
+    lifecycle: [
+      {
+        title: "Request",
+        description:
+          "Pressing the mic asks for microphone access once, and a blocked or missing device resolves into a readable error instead of a silent failure.",
+      },
+      {
+        title: "Record",
+        description:
+          "The button grows into a pill with a live waveform and elapsed time, so the person can see they are being heard and cancel or confirm at any point.",
+      },
+      {
+        title: "Transcribe",
+        description:
+          "Confirming stops capture, releases the microphone, and shows a processing shimmer until the supplied transcriber or the browser speech API returns text.",
+      },
+    ],
+    principles: [
+      {
+        title: "Show that it is listening",
+        description:
+          "Waveform bars follow the actual input level and a pulsing dot marks live capture. A recording that looks frozen makes people repeat themselves or give up.",
+      },
+      {
+        title: "Always offer a way out",
+        description:
+          "Cancel discards audio at every stage, including mid-transcription, and returns focus to the mic so a false start costs nothing.",
+      },
+      {
+        title: "Release hardware promptly",
+        description:
+          "Streams, audio contexts, recorders, and animation frames stop on confirm, cancel, error, and unmount so the browser's recording indicator never lingers.",
+      },
+    ],
+    implementation: {
+      title: "Keep the waveform off the React render path",
+      description:
+        "Read analyser levels in a requestAnimationFrame loop and write bar transforms directly to the DOM. Re-rendering per frame would cost the composer its responsiveness, and the timer only needs a state update once per second.",
+    },
+    connections: [
+      {
+        slug: "prompt-input",
+        name: "Prompt Input",
+        description: "Receives the transcript as an editable draft.",
+      },
+      {
+        slug: "loading-states",
+        name: "Loading States",
+        description: "Matches the shimmer used while transcription runs.",
+      },
+      {
+        slug: "message",
+        name: "Message",
+        description: "Displays the spoken prompt once it is sent.",
+      },
+    ],
+    contract: {
+      owns: "Microphone permission, recording state, live level visualization, elapsed time, cancel and confirm controls, transcription progress, and resource cleanup.",
+      leaves:
+        "Speech-to-text transport, language models, draft insertion, and submission to the application through onTranscribe and onTranscript.",
+    },
+    guidance: {
+      useWhen:
+        "People dictate prompts on mobile or hands-busy contexts, or longer instructions are faster to say than type.",
+      avoidWhen:
+        "The product can't send audio to a transcription service, or input must stay silent in shared spaces where typing is the expected default.",
+    },
+  },
 } satisfies Record<string, AgentGuide>;
