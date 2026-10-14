@@ -33,6 +33,9 @@ type CalendarBaseProps = {
   /** Uncontrolled initial visible month. Default: the selection or today. */
   defaultMonth?: Date;
   onMonthChange?: (month: Date) => void;
+  /** Months shown side by side (stacked below `sm`). Default 1. With more
+   * than one, days outside each month are left blank so none repeats. */
+  numberOfMonths?: number;
   className?: string;
   "aria-label"?: string;
 };
@@ -51,7 +54,20 @@ export type CalendarRangeProps = CalendarBaseProps & {
   onValueChange?: (range: DateRange) => void;
 };
 
-export type CalendarProps = CalendarSingleProps | CalendarRangeProps;
+export type CalendarMultipleProps = CalendarBaseProps & {
+  mode: "multiple";
+  value?: Date[] | null;
+  defaultValue?: Date[] | null;
+  /** Called with the selection sorted by date. */
+  onValueChange?: (dates: Date[]) => void;
+  /** Most days that can be picked; further picks are ignored. */
+  max?: number;
+};
+
+export type CalendarProps =
+  | CalendarSingleProps
+  | CalendarRangeProps
+  | CalendarMultipleProps;
 
 // ── date helpers (local time, day precision) ──────────────────────────────
 
@@ -99,9 +115,9 @@ const MONTH_ENTER = { duration: 0.26, ease: EASE_OUT } as const;
 const MONTH_EXIT = { duration: 0.16, ease: EASE_OUT } as const;
 
 /**
- * Month-grid calendar for single dates or ranges. The selected day is a pill
- * that glides between days on a shared-layout spring; months slide in from
- * the direction you travel. Full keyboard grid navigation (arrows, Home/End,
+ * Month-grid calendar for single dates, ranges or several separate days, one
+ * or more months wide. The selected day is a pill that glides between days on
+ * a shared-layout spring; months slide in from the direction you travel. Full keyboard grid navigation (arrows, Home/End,
  * PageUp/PageDown, Shift+Page for years). Controlled or uncontrolled for both
  * the selection and the visible month; reduced-motion safe.
  */
@@ -115,25 +131,30 @@ export function Calendar(props: CalendarProps) {
     month: controlledMonth,
     defaultMonth,
     onMonthChange,
+    numberOfMonths = 1,
     className,
     "aria-label": ariaLabel,
   } = props;
   const isRange = props.mode === "range";
+  const isMultiple = props.mode === "multiple";
+  const count = Math.max(1, Math.floor(numberOfMonths));
 
   const uid = useId();
   const reduce = useReducedMotion();
 
   // ── selection ──
   const [internalValue, setInternalValue] = useState<
-    Date | DateRange | null
+    Date | DateRange | Date[] | null
   >(props.defaultValue ?? null);
   const valueControlled = props.value !== undefined;
   const value = valueControlled ? (props.value ?? null) : internalValue;
-  const single = isRange ? null : (value as Date | null);
+  const single = isRange || isMultiple ? null : (value as Date | null);
   const range = isRange ? (value as DateRange | null) : null;
+  const picked = isMultiple ? ((value as Date[] | null) ?? []) : [];
+  const isPicked = (d: Date) => picked.some((p) => sameDay(p, d));
 
-  // ── visible month ──
-  const anchor = single ?? range?.from ?? null;
+  // ── visible months ──
+  const anchor = single ?? range?.from ?? picked[0] ?? null;
   const [internalMonth, setInternalMonth] = useState(() =>
     startOfMonth(defaultMonth ?? anchor ?? new Date()),
   );
@@ -141,6 +162,11 @@ export function Calendar(props: CalendarProps) {
     ? startOfMonth(controlledMonth)
     : internalMonth;
   const [direction, setDirection] = useState(1);
+  const lastMonth = addMonths(month, count - 1);
+  const inWindow = (d: Date) => {
+    const m = startOfMonth(d);
+    return m >= month && m <= lastMonth;
+  };
 
   const setMonth = useCallback(
     (next: Date) => {
@@ -167,10 +193,10 @@ export function Calendar(props: CalendarProps) {
   // Range hover preview: the band follows the pointer until the end is picked.
   const [hovered, setHovered] = useState<Date | null>(null);
 
-  // Keep the tab stop inside the visible month when it changes by buttons.
-  const focusInMonth = sameMonth(focused, month)
+  // Keep the tab stop inside the visible months when they change by buttons.
+  const focusInMonth = inWindow(focused)
     ? focused
-    : anchor && sameMonth(anchor, month)
+    : anchor && inWindow(anchor)
       ? anchor
       : month;
 
@@ -179,10 +205,10 @@ export function Calendar(props: CalendarProps) {
     shouldFocus.current = false;
     gridRef.current
       ?.querySelector<HTMLButtonElement>(
-        `[data-month="${monthKey(month)}"] [data-date="${dayKey(focusInMonth)}"]`,
+        `[data-month="${monthKey(focusInMonth)}"] [data-date="${dayKey(focusInMonth)}"]`,
       )
       ?.focus();
-  }, [focusInMonth, month]);
+  }, [focusInMonth]);
 
   const isDisabled = useCallback(
     (d: Date) =>
@@ -194,9 +220,21 @@ export function Calendar(props: CalendarProps) {
 
   const select = (d: Date) => {
     if (isDisabled(d)) return;
-    if (!sameMonth(d, month)) setMonth(d);
+    if (!inWindow(d)) setMonth(d);
     setFocused(d);
 
+    if (isMultiple) {
+      const max = (props as CalendarMultipleProps).max;
+      const next = isPicked(d)
+        ? picked.filter((p) => !sameDay(p, d))
+        : max !== undefined && picked.length >= max
+          ? null
+          : [...picked, d].sort((a, b) => a.getTime() - b.getTime());
+      if (!next) return;
+      if (!valueControlled) setInternalValue(next);
+      (props as CalendarMultipleProps).onValueChange?.(next);
+      return;
+    }
     if (!isRange) {
       if (!valueControlled) setInternalValue(d);
       (props as CalendarSingleProps).onValueChange?.(d);
@@ -246,17 +284,15 @@ export function Calendar(props: CalendarProps) {
     e.preventDefault();
     shouldFocus.current = true;
     setFocused(next);
-    setMonth(next);
+    // Scroll the window only when focus leaves it, by as little as needed.
+    if (!inWindow(next))
+      setMonth(next < month ? next : addMonths(startOfMonth(next), 1 - count));
   };
 
   // ── labels ──
-  const monthLabel = useMemo(
-    () =>
-      new Intl.DateTimeFormat(locale, {
-        month: "long",
-        year: "numeric",
-      }).format(month),
-    [locale, month],
+  const monthFormat = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }),
+    [locale],
   );
   const weekdays = useMemo(() => {
     const short = new Intl.DateTimeFormat(locale, { weekday: "short" });
@@ -278,15 +314,10 @@ export function Calendar(props: CalendarProps) {
     [locale],
   );
 
-  const weeks = useMemo(
-    () => buildWeeks(month, weekStartsOn),
-    [month, weekStartsOn],
-  );
-
   const prevDisabled =
     !!minDate && startOfMonth(minDate) >= month;
   const nextDisabled =
-    !!maxDate && startOfMonth(maxDate) <= month;
+    !!maxDate && startOfMonth(maxDate) <= lastMonth;
 
   // Range band end: the picked end, or the hovered day while choosing one.
   const bandEnd =
@@ -297,7 +328,9 @@ export function Calendar(props: CalendarProps) {
   const navButton =
     "inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
 
-  const mk = monthKey(month);
+  const months = Array.from({ length: count }, (_, i) => addMonths(month, i));
+  // Weekday index of the column, so connecting bands stop at the row ends.
+  const column = (d: Date) => (d.getDay() - weekStartsOn + 7) % 7;
 
   return (
     <div
@@ -306,182 +339,255 @@ export function Calendar(props: CalendarProps) {
         className,
       )}
     >
-      <div className="mb-2 flex items-center justify-between gap-2 px-1">
-        <button
-          type="button"
-          aria-label="Previous month"
-          disabled={prevDisabled}
-          onClick={() => setMonth(addMonths(month, -1))}
-          className={navButton}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <h2
-          id={`${uid}-label`}
-          aria-live="polite"
-          className="text-sm font-medium tabular-nums"
-        >
-          {monthLabel}
-        </h2>
-        <button
-          type="button"
-          aria-label="Next month"
-          disabled={nextDisabled}
-          onClick={() => setMonth(addMonths(month, 1))}
-          className={navButton}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div ref={gridRef} className="relative overflow-hidden">
-        <AnimatePresence initial={false} mode="popLayout" custom={direction}>
-          <motion.table
-            key={mk}
-            data-month={mk}
-            custom={direction}
-            aria-labelledby={ariaLabel ? undefined : `${uid}-label`}
-            aria-label={ariaLabel}
-            onKeyDown={onGridKeyDown}
-            onPointerLeave={() => setHovered(null)}
-            variants={{
-              enter: (dir: number) => ({
-                opacity: 0,
-                x: reduce ? 0 : dir * 28,
-                filter: reduce ? "blur(0px)" : "blur(4px)",
-              }),
-              center: {
-                opacity: 1,
-                x: 0,
-                filter: "blur(0px)",
-                transition: MONTH_ENTER,
-              },
-              exit: (dir: number) => ({
-                opacity: 0,
-                x: reduce ? 0 : dir * -28,
-                filter: reduce ? "blur(0px)" : "blur(4px)",
-                transition: MONTH_EXIT,
-              }),
-            }}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="border-collapse"
-          >
-            <thead>
-              <tr>
-                {weekdays.map((w) => (
-                  <th
-                    key={w.long}
-                    scope="col"
-                    abbr={w.long}
-                    className="h-8 w-9 text-[11px] font-medium text-muted-foreground"
+      <div
+        ref={gridRef}
+        onPointerLeave={() => setHovered(null)}
+        className="flex flex-col gap-x-6 gap-y-4 sm:flex-row"
+      >
+        {months.map((m, i) => {
+          const mk = monthKey(m);
+          const weeks = buildWeeks(m, weekStartsOn);
+          const labelId = `${uid}-label-${i}`;
+          return (
+            <div
+              // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional; each keeps its own month transition.
+              key={i}
+              className="min-w-0"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                {i === 0 ? (
+                  <button
+                    type="button"
+                    aria-label="Previous month"
+                    disabled={prevDisabled}
+                    onClick={() => setMonth(addMonths(month, -1))}
+                    className={navButton}
                   >
-                    {w.short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {weeks.map((week) => (
-                <tr key={dayKey(week[0])}>
-                  {week.map((d) => {
-                    const outside = !sameMonth(d, month);
-                    const disabled = isDisabled(d);
-                    const isToday = sameDay(d, today);
-                    const isFrom = sameDay(d, range?.from);
-                    const isTo = sameDay(d, bandEnd);
-                    const inBand =
-                      !!range?.from && !!bandEnd && d > range.from && d < bandEnd;
-                    const selected = isRange
-                      ? isFrom || (isTo && !!range?.to)
-                      : sameDay(d, single);
-                    const endpoint = isFrom || isTo;
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <span aria-hidden className="size-8" />
+                )}
+                <h2
+                  id={labelId}
+                  aria-live={i === 0 ? "polite" : undefined}
+                  className="text-sm font-medium tabular-nums"
+                >
+                  {monthFormat.format(m)}
+                </h2>
+                {i === count - 1 ? (
+                  <button
+                    type="button"
+                    aria-label="Next month"
+                    disabled={nextDisabled}
+                    onClick={() => setMonth(addMonths(month, 1))}
+                    className={navButton}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <span aria-hidden className="size-8" />
+                )}
+              </div>
 
-                    return (
-                      <td key={dayKey(d)} className="relative p-0">
-                        {(inBand || (endpoint && bandEnd && !sameDay(range?.from, bandEnd))) && (
-                          <span
-                            aria-hidden
-                            className={cn(
-                              "absolute inset-y-0.5 bg-primary/10",
-                              inBand && "inset-x-0",
-                              isFrom && "left-1/2 right-0",
-                              isTo && "left-0 right-1/2",
-                            )}
-                          />
-                        )}
-                        <button
-                          type="button"
-                          data-date={dayKey(d)}
-                          tabIndex={
-                            sameDay(d, focusInMonth) && !outside ? 0 : -1
-                          }
-                          aria-label={dayLabel.format(d)}
-                          aria-pressed={selected}
-                          aria-disabled={disabled || undefined}
-                          aria-current={isToday ? "date" : undefined}
-                          onClick={() => select(d)}
-                          onFocus={() => setFocused(d)}
-                          onPointerEnter={() => isRange && setHovered(d)}
-                          className={cn(
-                            "relative isolate flex size-9 items-center justify-center rounded-lg text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                            outside
-                              ? "text-muted-foreground/50"
-                              : "text-foreground",
-                            !selected && !disabled && "hover:bg-muted",
-                            selected && "text-primary-foreground",
-                            isTo && !range?.to && "text-foreground",
-                            disabled &&
-                              "cursor-not-allowed text-muted-foreground/40 line-through",
-                          )}
-                        >
-                          {selected &&
-                            (isRange ? (
-                              <motion.span
-                                aria-hidden
-                                initial={reduce ? false : { scale: 0.7 }}
-                                animate={{ scale: 1 }}
-                                transition={SPRING_PRESS}
-                                className="absolute inset-0 -z-10 rounded-lg bg-primary"
-                              />
-                            ) : (
-                              <motion.span
-                                aria-hidden
-                                // Scoped per month so the pill glides between
-                                // days but never across the sliding grids.
-                                layoutId={`${uid}-${mk}-selected`}
-                                transition={
-                                  reduce ? { duration: 0 } : SPRING_LAYOUT
-                                }
-                                className="absolute inset-0 -z-10 rounded-lg bg-primary"
-                              />
-                            ))}
-                          {isTo && !range?.to && (
-                            <span
-                              aria-hidden
-                              className="absolute inset-0 -z-10 rounded-lg border border-primary/40"
-                            />
-                          )}
-                          {d.getDate()}
-                          {isToday && (
-                            <span
-                              aria-hidden
-                              className={cn(
-                                "absolute bottom-1 size-1 rounded-full",
-                                selected ? "bg-primary-foreground" : "bg-primary",
-                              )}
-                            />
-                          )}
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </motion.table>
-        </AnimatePresence>
+              <div className="relative overflow-hidden">
+                <AnimatePresence
+                  initial={false}
+                  mode="popLayout"
+                  custom={direction}
+                >
+                  <motion.table
+                    key={mk}
+                    data-month={mk}
+                    custom={direction}
+                    aria-labelledby={ariaLabel ? undefined : labelId}
+                    aria-label={ariaLabel ? `${ariaLabel}, ${monthFormat.format(m)}` : undefined}
+                    onKeyDown={onGridKeyDown}
+                    variants={{
+                      enter: (dir: number) => ({
+                        opacity: 0,
+                        x: reduce ? 0 : dir * 28,
+                        filter: reduce ? "blur(0px)" : "blur(4px)",
+                      }),
+                      center: {
+                        opacity: 1,
+                        x: 0,
+                        filter: "blur(0px)",
+                        transition: MONTH_ENTER,
+                      },
+                      exit: (dir: number) => ({
+                        opacity: 0,
+                        x: reduce ? 0 : dir * -28,
+                        filter: reduce ? "blur(0px)" : "blur(4px)",
+                        transition: MONTH_EXIT,
+                      }),
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="border-collapse"
+                  >
+                    <thead>
+                      <tr>
+                        {weekdays.map((w) => (
+                          <th
+                            key={w.long}
+                            scope="col"
+                            abbr={w.long}
+                            className="h-8 w-9 text-[11px] font-medium text-muted-foreground"
+                          >
+                            {w.short}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {weeks.map((week) => (
+                        <tr key={dayKey(week[0])}>
+                          {week.map((d) => {
+                            const outside = !sameMonth(d, m);
+                            // Side-by-side months would show these days twice.
+                            if (outside && count > 1)
+                              return (
+                                <td key={dayKey(d)} className="p-0">
+                                  <span className="block size-9" />
+                                </td>
+                              );
+                            const disabled = isDisabled(d);
+                            const isToday = sameDay(d, today);
+                            const isFrom = sameDay(d, range?.from);
+                            const isTo = sameDay(d, bandEnd);
+                            const inBand =
+                              !!range?.from &&
+                              !!bandEnd &&
+                              d > range.from &&
+                              d < bandEnd;
+                            const chosen = isMultiple && isPicked(d);
+                            const selected = isRange
+                              ? isFrom || (isTo && !!range?.to)
+                              : isMultiple
+                                ? chosen
+                                : sameDay(d, single);
+                            const endpoint = isFrom || isTo;
+                            // Picked neighbours in the same row merge into one
+                            // pill, so a run of days reads as a block.
+                            const joinPrev =
+                              chosen &&
+                              column(d) > 0 &&
+                              sameMonth(addDays(d, -1), m) &&
+                              isPicked(addDays(d, -1));
+                            const joinNext =
+                              chosen &&
+                              column(d) < 6 &&
+                              sameMonth(addDays(d, 1), m) &&
+                              isPicked(addDays(d, 1));
+
+                            return (
+                              <td key={dayKey(d)} className="relative p-0">
+                                {(inBand ||
+                                  (endpoint &&
+                                    bandEnd &&
+                                    !sameDay(range?.from, bandEnd))) && (
+                                  <span
+                                    aria-hidden
+                                    className={cn(
+                                      "absolute inset-y-0.5 bg-primary/10",
+                                      inBand && "inset-x-0",
+                                      isFrom && "left-1/2 right-0",
+                                      isTo && "left-0 right-1/2",
+                                    )}
+                                  />
+                                )}
+                                <button
+                                  type="button"
+                                  data-date={dayKey(d)}
+                                  tabIndex={
+                                    sameDay(d, focusInMonth) && !outside
+                                      ? 0
+                                      : -1
+                                  }
+                                  aria-label={dayLabel.format(d)}
+                                  aria-pressed={selected}
+                                  aria-disabled={disabled || undefined}
+                                  aria-current={isToday ? "date" : undefined}
+                                  onClick={() => select(d)}
+                                  onFocus={() => setFocused(d)}
+                                  onPointerEnter={() =>
+                                    isRange && setHovered(d)
+                                  }
+                                  className={cn(
+                                    "relative isolate flex size-9 items-center justify-center rounded-lg text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                                    outside
+                                      ? "text-muted-foreground/50"
+                                      : "text-foreground",
+                                    !selected && !disabled && "hover:bg-muted",
+                                    selected && "text-primary-foreground",
+                                    isTo && !range?.to && "text-foreground",
+                                    disabled &&
+                                      "cursor-not-allowed text-muted-foreground/40 line-through",
+                                  )}
+                                >
+                                  {selected &&
+                                    (isRange || isMultiple ? (
+                                      <motion.span
+                                        aria-hidden
+                                        initial={
+                                          reduce ? false : { scale: 0.7 }
+                                        }
+                                        animate={{ scale: 1 }}
+                                        transition={SPRING_PRESS}
+                                        className={cn(
+                                          "absolute inset-0 -z-10 rounded-lg bg-primary",
+                                          joinPrev && "rounded-l-none",
+                                          joinNext && "rounded-r-none",
+                                        )}
+                                      />
+                                    ) : (
+                                      <motion.span
+                                        aria-hidden
+                                        // Scoped per month so the pill glides
+                                        // between days but never across the
+                                        // sliding grids.
+                                        layoutId={`${uid}-${mk}-selected`}
+                                        transition={
+                                          reduce
+                                            ? { duration: 0 }
+                                            : SPRING_LAYOUT
+                                        }
+                                        className="absolute inset-0 -z-10 rounded-lg bg-primary"
+                                      />
+                                    ))}
+                                  {isTo && !range?.to && (
+                                    <span
+                                      aria-hidden
+                                      className="absolute inset-0 -z-10 rounded-lg border border-primary/40"
+                                    />
+                                  )}
+                                  {d.getDate()}
+                                  {isToday && (
+                                    <span
+                                      aria-hidden
+                                      className={cn(
+                                        "absolute bottom-1 size-1 rounded-full",
+                                        selected
+                                          ? "bg-primary-foreground"
+                                          : "bg-primary",
+                                      )}
+                                    />
+                                  )}
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </motion.table>
+                </AnimatePresence>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

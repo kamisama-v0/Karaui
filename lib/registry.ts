@@ -1080,7 +1080,7 @@ export const registry: CategoryEntry[] = [
         slug: "date-picker",
         name: "Date Picker",
         description:
-          "Month-grid calendar with a selection pill that glides between days, directional month slides, single or range selection, min/max and per-day disabling, full keyboard grid navigation, and a date field whose calendar morphs open from the trigger. Locale-aware, reduced-motion safe.",
+          "Month-grid calendar with a selection pill that glides between days, directional month slides, single, range or multiple-day selection across one or several side-by-side months, min/max and per-day disabling, full keyboard grid navigation, a date field and a two-month range field with presets whose calendars morph open from the trigger. Locale-aware, reduced-motion safe.",
         file: "components/motion/date-picker.tsx",
         badge: "new",
         launchedAt: "2026-10-14",
@@ -1117,10 +1117,29 @@ export const registry: CategoryEntry[] = [
             slug: "range",
             name: "Range",
             description:
-              "Pick a start and end day; the band follows the pointer until the range closes.",
+              "Two months side by side; pick a start and end day and the band follows the pointer across both until the range closes.",
             file: "components/motion/calendar.tsx",
             previewKey: "motion/calendar-range",
             previewFile: "components/previews/motion/calendar-range.preview.tsx",
+          },
+          {
+            slug: "date-range-picker",
+            name: "Date Range Picker",
+            description:
+              "Range field whose two-month calendar morphs open beside one-click presets and commits once the end day is picked.",
+            installSlug: "date-range-picker",
+            file: "components/motion/date-range-picker.tsx",
+            previewKey: "motion/date-range-picker",
+            previewFile: "components/previews/motion/date-range-picker.preview.tsx",
+          },
+          {
+            slug: "multiple",
+            name: "Multiple Dates",
+            description:
+              "Toggle any number of separate days up to a max; picked neighbours in a week merge into one pill.",
+            file: "components/motion/calendar.tsx",
+            previewKey: "motion/calendar-multiple",
+            previewFile: "components/previews/motion/calendar-multiple.preview.tsx",
           },
         ],
       },

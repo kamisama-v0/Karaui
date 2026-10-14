@@ -14,6 +14,7 @@ export function CalendarRangePreview() {
     <div className="flex flex-col items-center gap-3">
       <Calendar
         mode="range"
+        numberOfMonths={2}
         value={range}
         onValueChange={setRange}
         minDate={today}

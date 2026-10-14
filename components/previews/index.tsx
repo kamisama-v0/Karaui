@@ -544,6 +544,16 @@ export const previews: Record<string, ComponentType> = {
   "motion/chart-funnel": dynamic(() =>
     import("./motion/chart-funnel.preview").then((m) => m.ChartFunnelPreview),
   ),
+  "motion/date-range-picker": dynamic(() =>
+    import("./motion/date-range-picker.preview").then(
+      (m) => m.DateRangePickerPreview,
+    ),
+  ),
+  "motion/calendar-multiple": dynamic(() =>
+    import("./motion/calendar-multiple.preview").then(
+      (m) => m.CalendarMultiplePreview,
+    ),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {
