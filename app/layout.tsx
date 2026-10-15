@@ -29,6 +29,7 @@ import {
   siteJsonLd,
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
+import { accentInitScript, accentStylesheet } from "@/lib/accents";
 import { designStylesStylesheet, styleInitScript } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
@@ -75,8 +76,10 @@ const inter = Inter({
   preload: false,
 });
 
-const STYLES_CSS = designStylesStylesheet();
-const STYLE_INIT = styleInitScript();
+// Accent rules come after the styles so an accent recolors any style.
+const STYLES_CSS = `${designStylesStylesheet()}
+${accentStylesheet()}`;
+const STYLE_INIT = `${styleInitScript()}${accentInitScript()}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -170,7 +173,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       )}
     >
       <head>
-        {/* Applies the saved design style before first paint (no flash). */}
+        {/* Applies the saved design style and accent before first paint (no flash). */}
         <script dangerouslySetInnerHTML={{ __html: STYLE_INIT }} />
         <style
           id="karaui-design-styles"

@@ -86,11 +86,10 @@
     );
 }
 
-/* Color theme presets (full token sets) are injected at runtime from
-   lib/themes.ts via PreferencesProvider, keyed by data-theme on <html>.
-   Design styles (palette, radius, shadow and font tokens) are injected from
+/* Design styles (palette, radius, shadow and font tokens) are injected from
    lib/styles.ts by the root layout, keyed by data-style; their decorations
-   live in app/styles.css. A non-default style wins over a color preset. */
+   live in app/styles.css. Accent colors (lib/accents.ts, data-accent) then
+   recolor only the brand tokens on top of whichever style is active. */
 
 @theme inline {
     /* Strong easing curves shared across every component. */

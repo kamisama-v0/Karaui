@@ -705,7 +705,8 @@ const SCOPED_FONT = `\n  font-family: var(--style-font-sans, var(--font-geist-sa
 
 /**
  * Stylesheet with every style's tokens. Selectors per style:
- * - light: `:root[data-style=x]` (beats `[data-theme]` color presets) and
+ * - light: `:root[data-style=x]` (accent colors in lib/accents.ts override
+ *   only the brand tokens, with !important) and
  *   `[data-style=x]` for scoped elements;
  * - dark: `:root.dark[data-style=x]`, `.dark [data-style=x]` (scoped element
  *   on a dark page) and `[data-style=x].dark`.

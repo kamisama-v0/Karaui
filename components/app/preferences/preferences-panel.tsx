@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Copy, X } from "lucide-react";
 import { Drawer } from "@/components/motion/drawer";
 import { cn } from "@/lib/utils";
-import { THEME_LIST, themeExportCss } from "@/lib/themes";
+import { ACCENT_LIST, accentExportCss } from "@/lib/accents";
 import {
   type IconSet,
   usePreferences,
@@ -18,8 +18,8 @@ const ICON_SETS: { id: IconSet | string; name: string; soon?: boolean }[] = [
 
 export function PreferencesPanel() {
   const {
-    colorTheme,
-    setColorTheme,
+    accent,
+    setAccent,
     iconSet,
     setIconSet,
     panelOpen,
@@ -27,8 +27,10 @@ export function PreferencesPanel() {
   } = usePreferences();
   const [copied, setCopied] = useState(false);
 
-  const copyTheme = async () => {
-    await navigator.clipboard.writeText(themeExportCss(colorTheme));
+  const exportCss = accentExportCss(accent);
+  const copyAccent = async () => {
+    if (!exportCss) return;
+    await navigator.clipboard.writeText(exportCss);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -55,41 +57,54 @@ export function PreferencesPanel() {
 
       <section>
         <p className="font-display text-xs font-medium uppercase text-muted-foreground">
-          Theme
+          Accent color
+        </p>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Recolors buttons, links and focus rings on top of the current style.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2.5">
-          {THEME_LIST.map((t) => {
-            const active = colorTheme === t.id;
+          {ACCENT_LIST.map((a) => {
+            const active = accent === a.id;
             return (
               <button
-                key={t.id}
+                key={a.id}
                 type="button"
-                onClick={() => setColorTheme(t.id)}
+                onClick={() => setAccent(a.id)}
                 aria-pressed={active}
-                aria-label={t.name}
-                title={t.name}
+                aria-label={a.name}
+                title={a.name}
                 className={cn(
-                  "relative flex h-6 w-6 items-center justify-center rounded-full ring-offset-2 ring-offset-background transition-shadow",
+                  "relative flex h-6 w-6 items-center justify-center rounded-full border border-border ring-offset-2 ring-offset-background transition-shadow",
                   active && "ring-2 ring-foreground/40",
+                  // "Style default" shows the style's own brand color.
+                  !a.swatch && "bg-primary",
                 )}
-                style={{ background: t.swatch }}
+                style={a.swatch ? { background: a.swatch } : undefined}
               >
-                {active ? <Check className="h-3 w-3 text-white" /> : null}
+                {active ? (
+                  <Check
+                    className={cn(
+                      "h-3 w-3",
+                      a.swatch ? "text-white" : "text-primary-foreground",
+                    )}
+                  />
+                ) : null}
               </button>
             );
           })}
         </div>
         <button
           type="button"
-          onClick={copyTheme}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-card/70"
+          onClick={copyAccent}
+          disabled={!exportCss}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-card/70 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {copied ? (
             <Check className="h-3.5 w-3.5" />
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
-          {copied ? "Copied CSS" : "Copy theme CSS"}
+          {copied ? "Copied CSS" : "Copy accent CSS"}
         </button>
       </section>
 
@@ -128,7 +143,7 @@ export function PreferencesPanel() {
           })}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Preferences reset on refresh.
+          Your accent and style are saved in this browser.
         </p>
       </section>
     </Drawer>
