@@ -695,6 +695,105 @@ export const previews: Record<string, ComponentType> = {
   "blocks/performance-report": dynamic(() =>
     import("./blocks/performance-report.preview").then((m) => m.PerformanceReportPreview),
   ),
+  "motion/textarea": dynamic(() =>
+    import("./motion/textarea.preview").then((m) => m.TextareaPreview),
+  ),
+  "motion/inline-edit": dynamic(() =>
+    import("./motion/inline-edit.preview").then((m) => m.InlineEditPreview),
+  ),
+  "motion/toggle-group": dynamic(() =>
+    import("./motion/toggle-group.preview").then((m) => m.ToggleGroupPreview),
+  ),
+  "motion/card": dynamic(() =>
+    import("./motion/card.preview").then((m) => m.CardPreview),
+  ),
+  "motion/scroll-area": dynamic(() =>
+    import("./motion/scroll-area.preview").then((m) => m.ScrollAreaPreview),
+  ),
+  "motion/collapsible": dynamic(() =>
+    import("./motion/collapsible.preview").then((m) => m.CollapsiblePreview),
+  ),
+  "motion/accordion": dynamic(() =>
+    import("./motion/accordion.preview").then((m) => m.AccordionPreview),
+  ),
+  "motion/menubar": dynamic(() =>
+    import("./motion/menubar.preview").then((m) => m.MenubarPreview),
+  ),
+  "motion/badge": dynamic(() =>
+    import("./motion/badge.preview").then((m) => m.BadgePreview),
+  ),
+  "agents/model-selector": dynamic(() =>
+    import("./agents/model-selector.preview").then((m) => m.ModelSelectorPreview),
+  ),
+  "agents/context-meter": dynamic(() =>
+    import("./agents/context-meter.preview").then((m) => m.ContextMeterPreview),
+  ),
+  "agents/prompt-suggestions": dynamic(() =>
+    import("./agents/prompt-suggestions.preview").then((m) => m.PromptSuggestionsPreview),
+  ),
+  "agents/message-actions": dynamic(() =>
+    import("./agents/message-actions.preview").then((m) => m.MessageActionsPreview),
+  ),
+  "agents/branch-navigator": dynamic(() =>
+    import("./agents/branch-navigator.preview").then((m) => m.BranchNavigatorPreview),
+  ),
+  "blocks/login-form": dynamic(() =>
+    import("./blocks/login-form.preview").then((m) => m.LoginFormPreview),
+  ),
+  "blocks/settings-page": dynamic(() =>
+    import("./blocks/settings-page.preview").then((m) => m.SettingsPagePreview),
+  ),
+  "blocks/contact-form": dynamic(() =>
+    import("./blocks/contact-form.preview").then((m) => m.ContactFormPreview),
+  ),
+  "blocks/checkout": dynamic(() =>
+    import("./blocks/checkout.preview").then((m) => m.CheckoutPreview),
+  ),
+  "blocks/invoice": dynamic(() =>
+    import("./blocks/invoice.preview").then((m) => m.InvoicePreview),
+  ),
+  "blocks/onboarding-checklist": dynamic(() =>
+    import("./blocks/onboarding-checklist.preview").then((m) => m.OnboardingChecklistPreview),
+  ),
+  "agents/conversation-history": dynamic(() =>
+    import("./agents/conversation-history.preview").then((m) => m.ConversationHistoryPreview),
+  ),
+  "agents/artifact-panel": dynamic(() =>
+    import("./agents/artifact-panel.preview").then((m) => m.ArtifactPanelPreview),
+  ),
+  "agents/voice-orb": dynamic(() =>
+    import("./agents/voice-orb.preview").then((m) => m.VoiceOrbPreview),
+  ),
+  "blocks/status-page": dynamic(() =>
+    import("./blocks/status-page.preview").then((m) => m.StatusPagePreview),
+  ),
+  "blocks/changelog": dynamic(() =>
+    import("./blocks/changelog.preview").then((m) => m.ChangelogPreview),
+  ),
+  "blocks/roadmap": dynamic(() =>
+    import("./blocks/roadmap.preview").then((m) => m.RoadmapPreview),
+  ),
+  "blocks/inbox-app": dynamic(() =>
+    import("./blocks/inbox-app.preview").then((m) => m.InboxAppPreview),
+  ),
+  "blocks/music-player": dynamic(() =>
+    import("./blocks/music-player.preview").then((m) => m.MusicPlayerPreview),
+  ),
+  "blocks/file-manager": dynamic(() =>
+    import("./blocks/file-manager.preview").then((m) => m.FileManagerPreview),
+  ),
+  "blocks/dashboard-shell": dynamic(() =>
+    import("./blocks/dashboard-shell.preview").then((m) => m.DashboardShellPreview),
+  ),
+  "blocks/comparison-table": dynamic(() =>
+    import("./blocks/comparison-table.preview").then((m) => m.ComparisonTablePreview),
+  ),
+  "blocks/feature-section": dynamic(() =>
+    import("./blocks/feature-section.preview").then((m) => m.FeatureSectionPreview),
+  ),
+  "blocks/blog-list": dynamic(() =>
+    import("./blocks/blog-list.preview").then((m) => m.BlogListPreview),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {
