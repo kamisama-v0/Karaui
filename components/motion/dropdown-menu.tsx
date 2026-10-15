@@ -117,10 +117,15 @@ function useLevelCore(open: boolean) {
     }, SUB_CLOSE_DELAY);
   }, [cancelSubClose]);
 
+  // Reset the highlight when the panel opens, not when it closes: removing
+  // the layoutId highlight while the panel is still animating out leaves
+  // motion waiting on it forever, so the closed panel never unmounts.
   useEffect(() => {
-    if (open) return;
+    if (open) {
+      setActiveId(null);
+      return;
+    }
     cancelSubClose();
-    setActiveId(null);
     setOpenSubState(null);
   }, [open, cancelSubClose]);
 
@@ -477,12 +482,15 @@ function MenuPanel({
           data-side={placement?.side ?? side}
           initial={level.reduce ? { opacity: 0 } : { opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
+          // pointerEvents flips at the start of the exit, so a closing panel
+          // can never be hovered or clicked through.
           exit={
             level.reduce
-              ? { opacity: 0, transition: { duration: 0.1 } }
+              ? { opacity: 0, pointerEvents: "none", transition: { duration: 0.1 } }
               : {
                   opacity: 0,
                   scale: 0.96,
+                  pointerEvents: "none",
                   transition: { duration: 0.12, ease: EASE_OUT },
                 }
           }
@@ -659,19 +667,24 @@ function ItemBase({
         className,
       )}
     >
-      {highlighted ? (
-        <motion.span
-          aria-hidden="true"
-          layoutId={`${level.levelId}-highlight`}
-          className={cn(
-            "absolute inset-0 -z-10 rounded-lg",
-            variant === "destructive"
-              ? "bg-destructive/10"
-              : "bg-foreground/[0.07]",
-          )}
-          transition={level.reduce ? { duration: 0 } : SPRING_LAYOUT}
-        />
-      ) : null}
+      {/* Its own presence boundary: a layoutId element registers with the
+          nearest AnimatePresence, and the panel's exit would otherwise wait
+          on the highlight's layout animation and never unmount. */}
+      <AnimatePresence initial={false}>
+        {highlighted ? (
+          <motion.span
+            aria-hidden="true"
+            layoutId={`${level.levelId}-highlight`}
+            className={cn(
+              "absolute inset-0 -z-10 rounded-lg",
+              variant === "destructive"
+                ? "bg-destructive/10"
+                : "bg-foreground/[0.07]",
+            )}
+            transition={level.reduce ? { duration: 0 } : SPRING_LAYOUT}
+          />
+        ) : null}
+      </AnimatePresence>
       {children}
     </button>
   );
