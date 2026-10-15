@@ -85,7 +85,9 @@ export function DateRangePicker({
   );
   const label =
     value?.to != null
-      ? format.formatRange(value.from, value.to)
+      ? // Not formatRange: its separators differ between ICU builds (Node on
+        // the server vs the browser), which breaks hydration.
+        `${format.format(value.from)} – ${format.format(value.to)}`
       : value
         ? format.format(value.from)
         : null;

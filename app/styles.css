@@ -1,0 +1,146 @@
+/*
+ * Design style decorations (site-wide, keyed by data-style on <html> or any
+ * element). Tokens — palette, radius, shadow and font scales — are generated
+ * from lib/styles.ts and injected by the root layout; this file only holds
+ * the extras tokens can't express. Every rule is scoped to a non-default
+ * style, so the stock look is untouched.
+ */
+
+/* ---------------------------------------------------------------- headings */
+
+/* In the base layer so a heading's own utilities (size, weight, tracking,
+   font-mono…) still win; this only sets the style's defaults. */
+@layer base {
+    :where([data-style="editorial"]) :is(h1, h2, h3),
+    /* Caveat is too small to read at card-title sizes, so h3 keeps the body face. */
+    :where([data-style="hand-drawn"]) :is(h1, h2),
+    :where([data-style="constructivism"]) :is(h1, h2),
+    :where([data-style="retro"]) :is(h1, h2) {
+        font-family: var(--style-font-display, var(--font-geist-sans));
+    }
+
+    /* Instrument Serif and Oswald-at-display are single-purpose faces: never
+       let the browser fake a bold on top of them. */
+    :where([data-style="editorial"]) :is(h1, h2, h3) {
+        font-synthesis: none;
+        letter-spacing: -0.01em;
+    }
+
+    :where([data-style="constructivism"]) :is(h1, h2) {
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    :where([data-style="swiss"]) {
+        letter-spacing: -0.011em;
+    }
+    :where([data-style="swiss"]) :is(h1, h2, h3) {
+        letter-spacing: -0.035em;
+    }
+
+    :where([data-style="neobrutalism"]) :is(h1, h2, h3) {
+        letter-spacing: -0.02em;
+    }
+}
+
+/* ----------------------------------------------------------------- borders */
+
+/* Neobrutalism: outlined surfaces get a 2px black stroke. Limited to bordered
+   card/popover/background surfaces so dividers and inputs keep 1px. */
+[data-style="neobrutalism"] :is(.bg-card, .bg-popover, .bg-background).border {
+    border-width: 2px;
+}
+
+/* Hand-drawn: pencil lines are a touch heavier. */
+[data-style="hand-drawn"] :is(.bg-card, .bg-popover).border {
+    border-width: 1.5px;
+}
+
+/* Sharp-cornered styles: pill buttons and links follow the radius scale
+   (`rounded-full` is a literal, not a token). Switch tracks, avatars and dots
+   stay round. */
+:is([data-style="swiss"], [data-style="constructivism"], [data-style="editorial"])
+    :is(button, a).rounded-full:not([role="switch"]) {
+    border-radius: var(--radius-md);
+}
+
+/* -------------------------------------------------------------- page decor */
+
+/* Grain (retro) and paper fibre (editorial, hand-drawn): one fixed overlay,
+   never interactive. The SVG is a tiny feTurbulence tile. */
+html:is([data-style="retro"], [data-style="editorial"], [data-style="hand-drawn"])::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 160px 160px;
+    opacity: 0.05;
+}
+html[data-style="retro"]::after {
+    opacity: 0.09;
+}
+html.dark:is([data-style="retro"], [data-style="editorial"], [data-style="hand-drawn"])::after {
+    filter: invert(1);
+    opacity: 0.04;
+}
+html.dark[data-style="retro"]::after {
+    opacity: 0.07;
+}
+
+/* Retro: the canvas is a sunset wash. */
+html[data-style="retro"] body {
+    background: var(--gradient-bg) fixed;
+}
+
+/* Constructivism: a fixed red slab cuts across the right edge. */
+html[data-style="constructivism"] body {
+    background:
+        linear-gradient(
+                105deg,
+                transparent 0 86%,
+                color-mix(in oklab, var(--primary) 9%, transparent) 86% 92%,
+                transparent 92%
+            )
+            fixed,
+        var(--background);
+}
+
+/* Swiss: a faint 12-column grid behind everything. */
+html[data-style="swiss"] body {
+    background:
+        repeating-linear-gradient(
+                to right,
+                transparent 0 calc(100% / 12 - 1px),
+                color-mix(in oklab, var(--foreground) 4%, transparent)
+                    calc(100% / 12 - 1px) calc(100% / 12)
+            )
+            fixed,
+        var(--background);
+}
+
+/* Bento: tinted canvas so white tiles read as blocks. */
+html[data-style="bento"] body {
+    background: var(--background);
+}
+
+/* ------------------------------------------------------- style transition */
+
+/* Style switches run inside a view transition: the new skin wipes down over
+   the old one. Reduced motion skips the transition entirely (see
+   use-design-style.ts). */
+html[data-style-vt]::view-transition-old(root) {
+    animation: none;
+}
+html[data-style-vt]::view-transition-new(root) {
+    animation: karaui-style-wipe 420ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes karaui-style-wipe {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}

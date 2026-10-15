@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildComponentMarkdown } from "@/lib/component-markdown";
 import { allRegistryTargets, allShadcnTargets, buildEntry, buildShadcnItem, findCategoryBySlug, findRegistryTarget } from "@/lib/registry-server";
+import { DESIGN_STYLES, findStyleByRegistrySlug, styleRegistryItem, styleRegistrySlug } from "@/lib/styles";
 
 export const dynamic = "force-static";
 // Only the prerendered slugs exist; unknown ones 404 without running code.
@@ -11,6 +12,8 @@ export function generateStaticParams() {
     ...allRegistryTargets().map((component) => ({ slug: component.slug })),
     ...allRegistryTargets().map((component) => ({ slug: `${component.slug}.md` })),
     ...allShadcnTargets().map((component) => ({ slug: `${component.slug}.json` })),
+    // Design styles as shadcn registry:theme items (/r/style-<id>.json).
+    ...DESIGN_STYLES.map((style) => ({ slug: `${styleRegistrySlug(style.id)}.json` })),
   ];
 }
 
@@ -22,6 +25,18 @@ export async function GET(
   const isMarkdown = slug.endsWith(".md");
   const isShadcnItem = slug.endsWith(".json");
   const componentSlug = slug.replace(/\.(?:json|md)$/, "");
+
+  const designStyle = isShadcnItem ? findStyleByRegistrySlug(componentSlug) : null;
+  if (designStyle) {
+    return NextResponse.json(styleRegistryItem(designStyle), {
+      headers: {
+        "cache-control": "public, max-age=300, s-maxage=3600",
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, OPTIONS",
+      },
+    });
+  }
+
   const cat = findCategoryBySlug(componentSlug);
   if (!cat) return NextResponse.json({ error: "not_found" }, { status: 404 });
 

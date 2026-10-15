@@ -659,6 +659,42 @@ export const previews: Record<string, ComponentType> = {
   "blocks/footer-section": dynamic(() =>
     import("./blocks/footer-section.preview").then((m) => m.FooterSectionPreview),
   ),
+  "blocks/cta-section": dynamic(() =>
+    import("./blocks/cta-section.preview").then((m) => m.CtaSectionPreview),
+  ),
+  "blocks/logo-cloud": dynamic(() =>
+    import("./blocks/logo-cloud.preview").then((m) => m.LogoCloudPreview),
+  ),
+  "blocks/how-it-works": dynamic(() =>
+    import("./blocks/how-it-works.preview").then((m) => m.HowItWorksPreview),
+  ),
+  "blocks/integrations-section": dynamic(() =>
+    import("./blocks/integrations-section.preview").then((m) => m.IntegrationsSectionPreview),
+  ),
+  "blocks/image-gallery": dynamic(() =>
+    import("./blocks/image-gallery.preview").then((m) => m.ImageGalleryPreview),
+  ),
+  "blocks/newsletter-section": dynamic(() =>
+    import("./blocks/newsletter-section.preview").then((m) => m.NewsletterSectionPreview),
+  ),
+  "blocks/team-section": dynamic(() =>
+    import("./blocks/team-section.preview").then((m) => m.TeamSectionPreview),
+  ),
+  "blocks/content-section": dynamic(() =>
+    import("./blocks/content-section.preview").then((m) => m.ContentSectionPreview),
+  ),
+  "blocks/audit-trail": dynamic(() =>
+    import("./blocks/audit-trail.preview").then((m) => m.AuditTrailPreview),
+  ),
+  "blocks/approval-queue": dynamic(() =>
+    import("./blocks/approval-queue.preview").then((m) => m.ApprovalQueuePreview),
+  ),
+  "blocks/log-explorer": dynamic(() =>
+    import("./blocks/log-explorer.preview").then((m) => m.LogExplorerPreview),
+  ),
+  "blocks/performance-report": dynamic(() =>
+    import("./blocks/performance-report.preview").then((m) => m.PerformanceReportPreview),
+  ),
 };
 
 export function getPreview(category: string, slug: string) {

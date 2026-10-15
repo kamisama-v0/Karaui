@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Caveat,
+  Geist,
+  Geist_Mono,
+  Instrument_Serif,
+  Inter,
+  Oswald,
+  Space_Grotesk,
+} from "next/font/google";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/app/analytics/google-analytics";
 import { ThemeProvider } from "@/components/app/chrome/theme-provider";
@@ -21,6 +29,7 @@ import {
   siteJsonLd,
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
+import { designStylesStylesheet, styleInitScript } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 const sans = Geist({
@@ -31,6 +40,43 @@ const mono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 });
+
+// Design-style faces (lib/styles.ts). Not preloaded: the @font-face rules
+// ship with the CSS, but a file is only fetched once a style uses it.
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument-serif",
+  display: "swap",
+  preload: false,
+});
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  display: "swap",
+  preload: false,
+});
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+  preload: false,
+});
+const oswald = Oswald({
+  subsets: ["latin"],
+  variable: "--font-oswald",
+  display: "swap",
+  preload: false,
+});
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: false,
+});
+
+const STYLES_CSS = designStylesStylesheet();
+const STYLE_INIT = styleInitScript();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -113,9 +159,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(sans.variable, mono.variable)}
+      className={cn(
+        sans.variable,
+        mono.variable,
+        instrumentSerif.variable,
+        caveat.variable,
+        spaceGrotesk.variable,
+        oswald.variable,
+        inter.variable,
+      )}
     >
       <head>
+        {/* Applies the saved design style before first paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: STYLE_INIT }} />
+        <style
+          id="karaui-design-styles"
+          dangerouslySetInnerHTML={{ __html: STYLES_CSS }}
+        />
         {process.env.NODE_ENV === "production" && (
           <script
             defer

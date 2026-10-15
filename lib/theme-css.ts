@@ -1,3 +1,5 @@
+import { type DesignStyleId, styleExportCss } from "@/lib/styles";
+
 /**
  * The karaUI theme layer: everything a project needs for the components to look
  * right without shadcn. Paste it into your globals.css (below `@import
@@ -155,3 +157,12 @@ export const THEME_CSS = `@custom-variant dark (&:where(.dark, .dark *));
     }
 }
 `;
+
+/**
+ * Copyable CSS for one design style (lib/styles.ts): its :root / .dark token
+ * blocks plus the @theme lines that route Tailwind's shadow and font
+ * utilities through the style variables. Paste below the theme layer above.
+ */
+export function styleThemeCss(id: DesignStyleId): string {
+  return styleExportCss(id);
+}

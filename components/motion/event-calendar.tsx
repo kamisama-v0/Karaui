@@ -430,14 +430,16 @@ export function EventCalendar({
     ? ""
     : view === "month"
       ? fmt.month.format(periodStart)
-      : fmt.range.formatRange(periodStart, addDays(periodStart, 6));
+      : // Not formatRange: its separators differ between ICU builds (server
+        // vs browser), which would break hydration of the title.
+        `${fmt.range.format(periodStart)} – ${fmt.range.format(addDays(periodStart, 6))}`;
 
   const timeLabel = useCallback(
     (e: CalendarEvent) =>
       e.allDay
         ? "All day"
         : sameDay(e.start, e.end)
-          ? fmt.time.formatRange(e.start, e.end)
+          ? `${fmt.time.format(e.start)} – ${fmt.time.format(e.end)}`
           : `${fmt.time.format(e.start)} – ${fmt.range.format(e.end)} ${fmt.time.format(e.end)}`,
     [fmt],
   );

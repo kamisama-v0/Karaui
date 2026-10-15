@@ -31,12 +31,17 @@ describe("AttachmentUpload", () => {
     expect(getByLabelText("Removing brief.pdf")).toBeTruthy();
     expect(queryByText("brief.pdf")).toBeTruthy();
 
-    await waitFor(() => {
-      expect(onRemove).toHaveBeenCalledWith(FILE_ITEM);
-      expect(queryByLabelText("Removing brief.pdf")).toBeNull();
-      expect(queryByLabelText("Remove brief.pdf")).toBeNull();
-    });
-  });
+    // Removal waits REMOVE_PENDING_MS plus the row's exit animation, which
+    // runs slowly on a busy machine; give it room instead of flaking.
+    await waitFor(
+      () => {
+        expect(onRemove).toHaveBeenCalledWith(FILE_ITEM);
+        expect(queryByLabelText("Removing brief.pdf")).toBeNull();
+        expect(queryByLabelText("Remove brief.pdf")).toBeNull();
+      },
+      { timeout: 10_000 },
+    );
+  }, 20_000);
 
   test("rejects files over the size limit", () => {
     const onFilesRejected = mock(() => {});

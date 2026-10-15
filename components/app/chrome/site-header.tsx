@@ -11,6 +11,7 @@ import { MobileNav } from "@/components/app/chrome/mobile-nav";
 import { usePreferences } from "@/components/app/preferences/preferences-provider";
 import { PressLink } from "@/components/app/press-link";
 import { SiteSearch } from "@/components/app/chrome/site-search";
+import { StylePicker } from "@/components/app/chrome/style-picker";
 import { Tooltip } from "@/components/motion/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -151,6 +152,9 @@ export function SiteHeader({
             // 36px button and paint over the controls beside it.
             <SiteSearch className="w-9 justify-center px-0 sm:w-44 sm:justify-start sm:px-3 md:w-9 md:justify-center md:px-0 md:max-lg:[&>kbd]:hidden md:max-lg:[&>span]:hidden lg:w-56 lg:justify-start lg:px-3" />
           )}
+          <div className="hidden sm:flex">
+            <StylePicker className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card/20 text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground" />
+          </div>
           <Tooltip content="Customize" side="bottom">
             <button
               type="button"

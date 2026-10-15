@@ -10,6 +10,7 @@ import { ActionSwapIcon } from "@/components/motion/action-swap";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { Tooltip } from "@/components/motion/tooltip";
 import { GithubIcon } from "@/components/app/icons";
+import { StylePicker } from "@/components/app/chrome/style-picker";
 
 export function SiteDock() {
   const pathname = usePathname();
@@ -108,6 +109,14 @@ export function SiteDock() {
                 </ActionSwapIcon>
               </button>
             </Tooltip>
+          </DockItem>
+          <DockItem aria-label="Design style">
+            <StylePicker
+              side="top"
+              align="center"
+              menuClassName="h-full w-full"
+              className="flex h-full w-full items-center justify-center"
+            />
           </DockItem>
           <DockItem aria-label="Toggle theme">
             <Tooltip

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { CodeBlock } from "@/components/app/docs/code-block";
+import { StyleGallery } from "@/components/app/docs/style-gallery";
 import { THEME_CSS } from "@/lib/theme-css";
 
 export const metadata: Metadata = {
@@ -82,6 +83,26 @@ export default function ThemePage() {
       </p>
       <div className="mt-4">
         <CodeBlock code={THEME_CSS} lang="css" filename="globals.css" />
+      </div>
+
+      <h2
+        id="design-styles"
+        className="mt-14 text-xl font-semibold tracking-tight text-foreground"
+      >
+        Design styles
+      </h2>
+      <p className="mt-2 text-muted-foreground">
+        A design style re-skins everything at once — palette, corner radii,
+        shadows and type — independently of light and dark mode. Each card
+        below renders in its own style. Switch the whole site with{" "}
+        <span className="text-foreground">Use this style</span> (or the
+        palette button in the header and dock), or copy a style&apos;s CSS
+        into your own{" "}
+        <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">globals.css</code>{" "}
+        below the theme layer.
+      </p>
+      <div className="mt-6">
+        <StyleGallery />
       </div>
     </div>
   );
