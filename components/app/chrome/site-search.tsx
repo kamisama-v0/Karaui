@@ -20,6 +20,7 @@ const PAGES = [
   },
   { slug: "openui", name: "OpenUI", href: "/docs/openui" },
   { slug: "mobile", name: "Mobile & responsive", href: "/docs/mobile" },
+  { slug: "blog", name: "Blog", href: "/blog" },
 ];
 
 /** Site search trigger backed by the library's own command palette. */

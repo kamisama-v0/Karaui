@@ -10,7 +10,17 @@ export type PageNavItem = {
   children?: PageNavItem[];
 };
 
-export function PageNav({ items }: { items: PageNavItem[] }) {
+export function PageNav({
+  items,
+  placement = "fixed",
+}: {
+  items: PageNavItem[];
+  /**
+   * `fixed` pins to the viewport edge (docs shell). `sticky` stays in its own
+   * grid column, for centered layouts such as blog posts.
+   */
+  placement?: "fixed" | "sticky";
+}) {
   const reduce = useReducedMotion();
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
   const scrollTargetRef = useRef<string | null>(null);
@@ -143,7 +153,12 @@ export function PageNav({ items }: { items: PageNavItem[] }) {
 
   return (
     <aside aria-label="On this page" className="hidden min-w-0 xl:block">
-      <div className="fixed top-24 right-8 z-10 max-h-[calc(100vh-8rem)] w-64 overflow-y-auto scrollbar-hide">
+      <div
+        className={cn(
+          "z-10 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide",
+          placement === "fixed" ? "fixed top-24 right-8 w-64" : "sticky top-24 w-full",
+        )}
+      >
         <p className="mb-1 text-xs font-medium text-muted-foreground">
           On this page
         </p>

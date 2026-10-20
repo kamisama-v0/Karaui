@@ -39,6 +39,7 @@ export function SiteHeader({
     pathname.startsWith("/components") || pathname.startsWith("/docs");
   const isPlayground = pathname.startsWith("/playground");
   const isTribute = pathname.startsWith("/tribute");
+  const isBlog = pathname.startsWith("/blog");
   const isHome = pathname === "/";
   const formattedStarCount =
     typeof githubStarCount === "number"
@@ -126,6 +127,17 @@ export function SiteHeader({
               )}
             >
               Playground
+            </Link>
+            <Link
+              href="/blog"
+              className={cn(
+                "rounded-md px-1.5 py-1.5 text-sm transition-colors lg:px-3",
+                isBlog
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Blog
             </Link>
             <Link
               href="/tribute"

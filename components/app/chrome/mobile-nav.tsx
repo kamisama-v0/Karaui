@@ -89,6 +89,18 @@ export function MobileNav() {
               Playground
             </Link>
             <Link
+              href="/blog"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm transition-colors",
+                pathname.startsWith("/blog")
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Blog
+            </Link>
+            <Link
               href="/tribute"
               onClick={() => setOpen(false)}
               className={cn(

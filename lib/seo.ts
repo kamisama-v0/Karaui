@@ -6,6 +6,7 @@ import {
   allComponents,
   registry,
 } from "@/lib/registry";
+import type { BlogPostMeta } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site";
 
 export const SITE = SITE_URL;
@@ -372,5 +373,61 @@ function toRelated(categorySlug: string, c: ComponentEntry): RelatedComponent {
     description: c.description,
     badge: c.badge,
     launchedAt: c.launchedAt,
+  };
+}
+
+const BLOG_AUTHOR = {
+  "@type": "Person",
+  name: AUTHOR,
+  url: "https://kamisama-v0.my.id",
+  sameAs: "https://github.com/kamisama-v0",
+} as const;
+
+/** Blog index: a schema.org Blog listing every post. */
+export function blogJsonLd(
+  posts: Pick<BlogPostMeta, "slug" | "title" | "description" | "date">[],
+): JsonLdSchema {
+  const url = abs("/blog");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${url}#blog`,
+    name: `${SITE_NAME} Blog`,
+    url,
+    inLanguage: "en",
+    isPartOf: { "@id": `${SITE}/#website` },
+    publisher: { "@id": `${SITE}/#org` },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      url: abs(`/blog/${post.slug}`),
+      datePublished: post.date,
+      author: BLOG_AUTHOR,
+    })),
+  };
+}
+
+/** One post: BlogPosting, part of the Blog above. */
+export function blogPostingJsonLd(post: BlogPostMeta, image: string): JsonLdSchema {
+  const url = abs(`/blog/${post.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: post.title,
+    description: post.description,
+    url,
+    mainEntityOfPage: url,
+    image: abs(image),
+    inLanguage: "en",
+    datePublished: post.date,
+    dateModified: post.updated ?? post.date,
+    author: BLOG_AUTHOR,
+    publisher: { "@id": `${SITE}/#org` },
+    isPartOf: { "@id": `${abs("/blog")}#blog` },
+    articleSection: post.category,
+    keywords: post.tags.join(", "),
+    timeRequired: `PT${post.readingMinutes}M`,
   };
 }
