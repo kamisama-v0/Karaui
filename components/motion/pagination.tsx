@@ -11,6 +11,7 @@ import {
 import { useCallback, useId, useState } from "react";
 import { EASE_OUT, SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
 import { useHoverCapable } from "@/lib/hooks/use-hover-capable";
+import { TOUCH_TARGET_CLASS, TOUCH_TARGET_Y_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 export type PaginationVariant = "numbers" | "dots";
@@ -117,7 +118,7 @@ const FADE_VARIANTS: Variants = {
 };
 
 const ITEM_CLASS =
-  "relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-40";
+  "relative grid size-9 shrink-0 place-items-center rounded-full text-sm tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-40";
 
 export function Pagination({
   total,
@@ -182,6 +183,7 @@ export function Pagination({
         transition={SPRING_PRESS}
         className={cn(
           ITEM_CLASS,
+          TOUCH_TARGET_CLASS,
           "text-muted-foreground hover:bg-muted hover:text-foreground",
           variant === "dots" && "size-8",
         )}
@@ -235,7 +237,10 @@ export function Pagination({
                       aria-current={active ? "page" : undefined}
                       disabled={disabled}
                       onClick={() => go(p)}
-                      className="group relative grid h-5 w-5 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-40"
+                      className={cn(
+                        "group relative grid h-5 w-5 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-40",
+                        TOUCH_TARGET_Y_CLASS,
+                      )}
                     >
                       <span className="size-2 rounded-full bg-muted-foreground/35 transition-colors group-hover:bg-muted-foreground/60" />
                       {active ? (
@@ -297,28 +302,33 @@ export function Pagination({
                     transition={SPRING_PRESS}
                     className={cn(
                       ITEM_CLASS,
+                      TOUCH_TARGET_CLASS,
                       active
                         ? "text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    <AnimatePresence
-                      initial={false}
-                      mode="popLayout"
-                      custom={direction}
-                    >
-                      <motion.span
-                        key={itemKey}
+                    {/* The roll clips here rather than on the button, so the
+                        button's touch hit area can overhang it. */}
+                    <span className="relative grid size-full place-items-center overflow-hidden rounded-[inherit]">
+                      <AnimatePresence
+                        initial={false}
+                        mode="popLayout"
                         custom={direction}
-                        variants={rollVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="col-start-1 row-start-1"
                       >
-                        {item}
-                      </motion.span>
-                    </AnimatePresence>
+                        <motion.span
+                          key={itemKey}
+                          custom={direction}
+                          variants={rollVariants}
+                          initial="initial"
+                          animate="animate"
+                          exit="exit"
+                          className="col-start-1 row-start-1"
+                        >
+                          {item}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>
                   </motion.button>
                 )}
               </li>

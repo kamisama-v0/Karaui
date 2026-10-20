@@ -24,6 +24,7 @@ import {
 import { KbdCombo } from "@/components/motion/kbd";
 import { Tooltip } from "@/components/motion/tooltip";
 import { EASE_OUT, SPRING_LAYOUT } from "@/lib/ease";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 export interface DashboardNavItem {
@@ -72,6 +73,12 @@ export interface DashboardShellProps {
   description?: ReactNode;
   /** Page-header actions (buttons). */
   actions?: ReactNode;
+  /**
+   * Shell width in px below which the sidebar moves into a Drawer behind a
+   * menu button. Measured on the shell itself (a CSS container query), not the
+   * viewport. Default 768, which matches `md` when the shell spans the page.
+   */
+  mobileBelow?: number;
   children?: ReactNode;
   className?: string;
 }
@@ -107,9 +114,16 @@ const DEFAULT_MENU: DashboardUserMenuItem[] = [
  * Container-sized app shell: a sidebar that collapses to icons (labels fade,
  * tooltips take over, the active pill glides between rows), a top bar with a
  * Mod+K search field and avatar menu, and a content slot with breadcrumbs,
- * title and actions that cross-fades per page. Below `md` the sidebar moves
- * into a Drawer behind a menu button. Fills its parent's box, unlike the
- * viewport-height `AnimatedSidebar` primitives.
+ * title and actions that cross-fades per page. When the shell itself is
+ * narrower than `mobileBelow` (768px) the sidebar moves into a Drawer behind a
+ * menu button. Fills its parent's box, unlike the viewport-height
+ * `AnimatedSidebar` primitives.
+ *
+ * The switch is a CSS container query on the shell's own width, so it also
+ * folds inside a docs frame or a split view. Tailwind variants are static and
+ * the breakpoint is a prop, so the query is a small `<style>` scoped to this
+ * instance; it renders on the server too, so the first paint already has the
+ * right layout and nothing is measured or swapped after hydration.
  */
 export function DashboardShell({
   nav,
@@ -129,6 +143,7 @@ export function DashboardShell({
   title,
   description,
   actions,
+  mobileBelow = 768,
   children,
   className,
 }: DashboardShellProps) {
@@ -147,7 +162,29 @@ export function DashboardShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
+  // One container name per instance, so nested shells each answer to their
+  // own width. useId is stable across server and client, so the CSS matches.
+  const scope = `dash-shell-${baseId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const breakpoint = Number.isFinite(mobileBelow) ? Math.max(0, mobileBelow) : 768;
+  // No `<`/`>` or quotes in here: React escapes text children on the server.
+  const layoutCss =
+    `@container ${scope} not (min-width: ${breakpoint}px){[data-shell-desktop=${scope}]{display:none}}` +
+    `@container ${scope} (min-width: ${breakpoint}px){[data-shell-mobile=${scope}]{display:none}[data-shell-pad=${scope}]{padding:1.25rem}}`;
+
+  // The drawer only exists in the narrow layout. If the shell widens past the
+  // breakpoint while it is open (rotation, a resized split), close it rather
+  // than leave a mobile drawer over the desktop sidebar.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!drawerOpen || !el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth >= breakpoint) setDrawerOpen(false);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [drawerOpen, breakpoint]);
 
   useEffect(() => {
     if (!globalShortcut) return;
@@ -181,12 +218,15 @@ export function DashboardShell({
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: scoped Mod+K shortcut; every control inside is a real element.
     <div
+      ref={rootRef}
       onKeyDown={onShellKey}
+      style={{ containerName: `shell ${scope}` }}
       className={cn(
-        "relative flex h-full min-h-0 w-full overflow-hidden rounded-2xl border border-border bg-background text-foreground",
+        "@container/shell relative flex h-full min-h-0 w-full overflow-hidden rounded-2xl border border-border bg-background text-foreground",
         className,
       )}
     >
+      <style>{layoutCss}</style>
       {/* Desktop sidebar. Width is animated on purpose: collapsing is a layout
           change — the content column has to reflow into the freed space. */}
       <motion.aside
@@ -194,7 +234,8 @@ export function DashboardShell({
         initial={false}
         animate={{ width: collapsed ? 56 : 200 }}
         transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
-        className="hidden shrink-0 flex-col overflow-hidden border-r border-border bg-muted/40 md:flex"
+        data-shell-desktop={scope}
+        className="flex shrink-0 flex-col overflow-hidden border-r border-border bg-muted/40"
       >
         <div className="flex h-12 shrink-0 items-center gap-2 px-3">
           <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
@@ -237,7 +278,11 @@ export function DashboardShell({
             type="button"
             aria-label="Open navigation"
             onClick={() => setDrawerOpen(true)}
-            className="grid size-8 place-items-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary md:hidden"
+            data-shell-mobile={scope}
+            className={cn(
+              "relative grid size-8 place-items-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary",
+              TOUCH_TARGET_CLASS,
+            )}
           >
             <Menu aria-hidden className="size-4" />
           </button>
@@ -246,7 +291,11 @@ export function DashboardShell({
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-expanded={!collapsed}
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden size-8 place-items-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary md:grid"
+            data-shell-desktop={scope}
+            className={cn(
+              "relative grid size-8 place-items-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary",
+              TOUCH_TARGET_CLASS,
+            )}
           >
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
@@ -278,9 +327,9 @@ export function DashboardShell({
                 if (e.key === "Escape") e.currentTarget.blur();
               }}
               placeholder={searchPlaceholder}
-              className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+              className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground pointer-coarse:text-base [&::-webkit-search-cancel-button]:hidden"
             />
-            <KbdCombo keys={["mod", "k"]} size="sm" className="hidden group-focus-within:opacity-0 sm:inline-flex" />
+            <KbdCombo keys={["mod", "k"]} size="sm" className="hidden group-focus-within:opacity-0 @min-[40rem]/shell:inline-flex" />
           </label>
 
           <div className="ml-auto">
@@ -289,11 +338,14 @@ export function DashboardShell({
                 <button
                   type="button"
                   aria-label={`Account menu for ${user.name}`}
-                  className="grid size-8 place-items-center overflow-hidden rounded-full bg-primary/15 text-[11px] font-semibold outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-primary"
+                  className={cn(
+                    "relative grid size-8 place-items-center rounded-full bg-primary/15 text-[11px] font-semibold outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-primary",
+                    TOUCH_TARGET_CLASS,
+                  )}
                 >
                   {user.avatar ? (
                     // biome-ignore lint/performance/noImgElement: library component, framework-agnostic.
-                    <img src={user.avatar} alt="" className="size-full object-cover" />
+                    <img src={user.avatar} alt="" className="size-full rounded-[inherit] object-cover" />
                   ) : (
                     initials
                   )}
@@ -326,7 +378,8 @@ export function DashboardShell({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
               transition={{ duration: 0.22, ease: EASE_OUT }}
-              className="p-4 md:p-5"
+              data-shell-pad={scope}
+              className="p-4"
             >
               {breadcrumbs || title || actions ? (
                 <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -438,6 +491,7 @@ function NavList({
                     onClick={() => onPick(item.id)}
                     className={cn(
                       "relative flex h-8 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary",
+                      TOUCH_TARGET_CLASS,
                       isActive ? "text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >

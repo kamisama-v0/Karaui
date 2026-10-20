@@ -115,6 +115,7 @@ export function TableEditablePreview() {
         getRowId={(row) => row.id}
         rowHeight={48}
         height={bodyHeight}
+        mobileLayout="stack"
         onCellEdit={editable ? onCellEdit : undefined}
         onColumnRename={editable ? onColumnRename : undefined}
         onInsertRow={editable ? onInsertRow : undefined}

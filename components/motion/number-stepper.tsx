@@ -19,7 +19,7 @@ import {
   useState,
 } from "react";
 import { EASE_OUT, SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
-import { TOUCH_GESTURE_CLASS } from "@/lib/touch";
+import { TOUCH_GESTURE_CLASS, TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 export interface NumberStepperProps {
@@ -260,10 +260,11 @@ export function NumberStepper({
           if (e.detail === 0 && !disabled) stepFrom(commitDraft(), dir * stride);
         }}
         className={cn(
-          "grid size-9 shrink-0 place-items-center rounded-full text-foreground outline-none transition-colors duration-150",
+          "relative grid size-9 shrink-0 place-items-center rounded-full text-foreground outline-none transition-colors duration-150",
           "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed",
           pinned && "text-muted-foreground/50 hover:bg-transparent",
           TOUCH_GESTURE_CLASS,
+          TOUCH_TARGET_CLASS,
         )}
       >
         <Icon className="size-4" aria-hidden />

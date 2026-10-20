@@ -16,6 +16,13 @@ const PAGE_CARDS = {
     label: "Integration guide",
     command: "karaui.kamisama-v0.my.id/docs/openui",
   },
+  mobile: {
+    title: "Mobile & responsive",
+    description:
+      "Container queries, 44px touch targets, stacked tables and touch gestures in karaUI.",
+    label: "Guide",
+    command: "karaui.kamisama-v0.my.id/docs/mobile",
+  },
 } as const;
 
 export async function GET(request: Request) {

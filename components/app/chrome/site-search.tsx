@@ -19,6 +19,7 @@ const PAGES = [
     href: "/docs/motion-patterns",
   },
   { slug: "openui", name: "OpenUI", href: "/docs/openui" },
+  { slug: "mobile", name: "Mobile & responsive", href: "/docs/mobile" },
 ];
 
 /** Site search trigger backed by the library's own command palette. */

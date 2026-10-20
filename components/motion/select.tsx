@@ -20,6 +20,7 @@ import {
   useState,
 } from "react";
 import { EASE_OUT } from "@/lib/ease";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 const INSTANT_TRANSITION: Transition = { duration: 0 };
@@ -239,6 +240,7 @@ export function SelectTrigger({ className, children }: SelectTriggerProps) {
         "relative z-10 flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors",
         "hover:border-(--color-border-strong) focus-visible:ring-2 focus-visible:ring-foreground/20",
         "disabled:pointer-events-none disabled:opacity-50",
+        TOUCH_TARGET_CLASS,
         className,
       )}
     >

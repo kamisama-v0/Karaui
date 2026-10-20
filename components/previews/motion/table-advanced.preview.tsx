@@ -1,7 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   DataTable,
   type DataTableColumn,
@@ -84,6 +84,9 @@ function OrderDetail({ order }: { order: Order }) {
 }
 
 export function TableAdvancedPreview() {
+  // "phone" squeezes the table to a 375px frame so mobileLayout="stack" swaps
+  // the rows for cards; on a real phone it stacks without the toggle.
+  const [width, setWidth] = useState<"wide" | "phone">("wide");
   const columns = useMemo<DataTableColumn<Order>[]>(
     () => [
       {
@@ -92,6 +95,7 @@ export function TableAdvancedPreview() {
         width: "88px",
         sortable: true,
         hideable: false,
+        primary: true,
         sortValue: (row) => Number(row.id.slice(1)),
         cell: (row) => (
           <span className="font-medium tabular-nums">{row.id}</span>
@@ -101,6 +105,7 @@ export function TableAdvancedPreview() {
         key: "customer",
         header: "Customer",
         sortable: true,
+        primary: true,
         filter: "text",
       },
       {
@@ -155,7 +160,30 @@ export function TableAdvancedPreview() {
   );
 
   return (
-    <div className="flex w-full justify-center p-4">
+    <div className="flex w-full flex-col items-center gap-2 p-4">
+      <div
+        className={cn(
+          "flex w-full justify-end",
+          width === "phone" ? "max-w-[375px]" : "max-w-[620px]",
+        )}
+      >
+        <fieldset
+          aria-label="Preview width"
+          className="inline-flex rounded-lg border border-border p-0.5 text-muted-foreground"
+        >
+          {(["wide", "phone"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={width === option}
+              onClick={() => setWidth(option)}
+              className="rounded-md px-2 py-0.5 text-xs capitalize transition-colors hover:text-foreground aria-pressed:bg-muted aria-pressed:text-foreground"
+            >
+              {option}
+            </button>
+          ))}
+        </fieldset>
+      </div>
       <DataTable
         data={ORDERS}
         columns={columns}
@@ -176,7 +204,8 @@ export function TableAdvancedPreview() {
         )}
         pageSize={5}
         searchPlaceholder="Search orders…"
-        className="max-w-[620px]"
+        mobileLayout="stack"
+        className={width === "phone" ? "max-w-[375px]" : "max-w-[620px]"}
       />
     </div>
   );

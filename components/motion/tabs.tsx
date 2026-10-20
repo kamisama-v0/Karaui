@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { EASE_OUT } from "@/lib/ease";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 type Variant = "pill" | "underline" | "segment";
@@ -165,6 +166,7 @@ export function TabsTrigger({
         onClick={() => setValue(value)}
         className={cn(
           "relative z-10 inline-flex items-center justify-center whitespace-nowrap bg-transparent px-3.5 py-1.5 text-sm font-medium outline-none",
+          TOUCH_TARGET_CLASS,
           "transition-colors",
           active
             ? "text-primary-foreground"

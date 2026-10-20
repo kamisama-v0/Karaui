@@ -2,6 +2,7 @@
 
 import { animate, motion, MotionConfig, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 // Heavy, deliberate thumb — high mass keeps the travel weighty without wobble.
@@ -64,7 +65,8 @@ export function Switch({
           initial={false}
           data-state={checked ? "checked" : "unchecked"}
           className={cn(
-            "group peer inline-flex h-7 w-12 shrink-0 cursor-pointer items-center px-1 rounded-full outline-none transition-colors duration-200",
+            "group peer relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center px-1 rounded-full outline-none transition-colors duration-200",
+            TOUCH_TARGET_CLASS,
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             "disabled:cursor-not-allowed disabled:opacity-60",
             checked ? "justify-end bg-primary" : "justify-start bg-muted-foreground/60",

@@ -1,13 +1,30 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { MoreVertical } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Checkbox } from "@/components/motion/checkbox";
 import { cn } from "@/lib/utils";
 import { EditableCell } from "./editable-cell";
-import { RowHandle } from "./row-handle";
-import { SkeletonRows } from "./skeleton-rows";
+import { RowHandle, rowMenuItems } from "./row-handle";
+import { SkeletonCards, SkeletonRows } from "./skeleton-rows";
+import {
+  DEFAULT_STACK_BELOW,
+  estimateCardHeight,
+  StackedFields,
+  StackSortSelect,
+  splitStackColumns,
+  useStackedLayout,
+} from "./stacked";
+import { TableMenu } from "./table-menu";
 import { TableHeader } from "./table-header";
 import type { HeaderCellRefs, TableProps } from "./types";
 import { useColumnReorder } from "./use-column-reorder";
@@ -17,6 +34,7 @@ import { useRowSelection } from "./use-row-selection";
 import { alignText, CHECKBOX_PX, CHECKBOX_WIDTH, readCell } from "./utils";
 
 export type {
+  MobileLayout,
   SortDirection,
   SortState,
   TableColumn,
@@ -97,10 +115,18 @@ export function Table<T>({
   loading = false,
   skeletonRows = 3,
   emptyState = "No data",
+  mobileLayout = "scroll",
+  stackBelow = DEFAULT_STACK_BELOW,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
+  const rootRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const stacked = useStackedLayout(
+    rootRef,
+    mobileLayout === "stack",
+    stackBelow,
+  );
   const thRefs: HeaderCellRefs = useRef<
     Record<string, HTMLTableCellElement | null>
   >({});
@@ -123,7 +149,7 @@ export function Table<T>({
     endReorder,
   } = useColumnReorder({ columns, thRefs, onColumnOrderChange });
 
-  const { sort, sortedRows, toggleSort } = useColumnSort({
+  const { sort, sortedRows, toggleSort, setSort } = useColumnSort({
     rows,
     columns,
     sort: sortProp,
@@ -146,12 +172,31 @@ export function Table<T>({
       onSelectionChange,
     });
 
-  const virtualizer = useVirtualizer({
+  // Stacked mode keeps the virtualizer: cards vary in height, so each one is
+  // measured (`measureElement`) once rendered, starting from an estimate.
+  const { primary: titleColumns, fields: fieldColumns } = useMemo(
+    () => splitStackColumns(orderedColumns),
+    [orderedColumns],
+  );
+  const itemEstimate = stacked
+    ? estimateCardHeight(fieldColumns.length)
+    : rowHeight;
+  const getItemKey = useCallback(
+    (index: number) => sortedRows[index]?.id ?? index,
+    [sortedRows],
+  );
+  const virtualizer = useVirtualizer<HTMLDivElement, HTMLLIElement>({
     count: sortedRows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => rowHeight,
+    estimateSize: () => itemEstimate,
+    getItemKey,
     overscan,
   });
+  // Switching layouts (or card shape) invalidates every cached size.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: itemEstimate is the reset trigger.
+  useLayoutEffect(() => {
+    virtualizer.measure();
+  }, [virtualizer, itemEstimate]);
 
   const virtualItems = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
@@ -213,11 +258,11 @@ export function Table<T>({
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el || !onEndReached || loading || endReachedRef.current) return;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight < rowHeight * 4) {
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < itemEstimate * 4) {
       endReachedRef.current = true;
       onEndReached();
     }
-  }, [onEndReached, loading, rowHeight]);
+  }, [onEndReached, loading, itemEstimate]);
   const [activeColumn, setActiveColumn] = useState<string | null>(null);
   // Small delay on leave so the pointer can cross the gap from the header cell
   // to the portal handle without the column deactivating.
@@ -250,172 +295,291 @@ export function Table<T>({
   // Real columns + checkbox; the trailing spacer adds one more in colSpans.
   const leadColumns = columns.length + (selectable ? 1 : 0);
 
+  const showStackControls =
+    selectable || orderedColumns.some((column) => column.sortable);
+
+  const renderValue = (
+    entry: (typeof sortedRows)[number],
+    column: (typeof orderedColumns)[number],
+    index: number,
+  ) =>
+    !column.cell && column.editable ? (
+      <EditableCell
+        value={String(readCell(entry.row, column) ?? "")}
+        label={`${column.key} for row ${index + 1}`}
+        onChange={(next) => onCellEdit?.(entry.id, column.key, next)}
+      />
+    ) : (
+      readCell(entry.row, column)
+    );
+
   return (
     <div
+      ref={rootRef}
+      data-layout={stacked ? "stack" : "table"}
       className={cn(
         "w-full overflow-hidden border border-border bg-background text-sm",
         className,
       )}
     >
+      {stacked && showStackControls ? (
+        <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2 border-border border-b bg-muted/40 px-3 py-1.5">
+          {selectable ? (
+            <Checkbox
+              checked={allSelected}
+              indeterminate={!allSelected && someSelected}
+              onCheckedChange={toggleAll}
+              label="Select all"
+              className="text-muted-foreground text-xs"
+            />
+          ) : null}
+          <StackSortSelect
+            columns={orderedColumns}
+            value={sort}
+            onChange={setSort}
+            className="ml-auto"
+          />
+        </div>
+      ) : null}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="overflow-auto"
         style={{ height }}
       >
-        <table
-          className={cn("border-collapse", sized ? "w-max" : undefined)}
-          style={{
-            tableLayout: "fixed",
-            minWidth: `max(100%, ${minTableWidth}px)`,
-          }}
-        >
-          <colgroup>
-            {selectable ? <col style={{ width: CHECKBOX_WIDTH }} /> : null}
-            {orderedColumns.map((column) => {
-              const override = widths[column.key];
-              const width = override ? `${override}px` : column.width;
-              return (
-                <col key={column.key} style={width ? { width } : undefined} />
-              );
-            })}
-            {/* Empty filler owns the leftover space — no gap, content unpinned. */}
-            <col />
-          </colgroup>
-
-          <TableHeader
-            columns={orderedColumns}
-            rowHeight={rowHeight}
-            reduce={!!reduce}
-            thRefs={thRefs}
-            selectable={selectable}
-            allSelected={allSelected}
-            someSelected={someSelected}
-            onToggleAll={toggleAll}
-            sort={sort}
-            onToggleSort={toggleSort}
-            resizable={resizable}
-            onResizeStart={startResize}
-            onResizeMove={moveResize}
-            onResizeEnd={endResize}
-            reorderable={reorderable}
-            dragKey={dragKey}
-            dropIndex={dropIndex}
-            onReorderStart={startReorder}
-            onReorderMove={moveReorder}
-            onReorderEnd={endReorder}
-            onInsertColumn={onInsertColumn}
-            onDeleteColumn={onDeleteColumn}
-            onColumnRename={onColumnRename}
-            activeColumn={hasColumnMenu ? activeColumn : null}
-            onColumnActivate={hasColumnMenu ? activateColumn : undefined}
-            onColumnDeactivate={hasColumnMenu ? deactivateColumn : undefined}
-          />
-
-          <tbody>
-            {sortedRows.length === 0 ? (
-              loading ? (
-                <SkeletonRows
-                  count={Math.max(1, Math.ceil(height / rowHeight))}
-                  columns={orderedColumns}
-                  selectable={selectable}
-                  rowHeight={rowHeight}
-                />
-              ) : (
-                <tr>
-                  <td
-                    colSpan={leadColumns + 1}
-                    className="p-10 text-center text-muted-foreground"
-                  >
-                    {emptyState}
-                  </td>
-                </tr>
-              )
-            ) : (
-              <>
-                {paddingTop > 0 ? (
-                  <tr aria-hidden style={{ height: paddingTop }}>
-                    <td colSpan={leadColumns + 1} />
-                  </tr>
-                ) : null}
-                {virtualItems.map((vItem) => {
-                  const entry = sortedRows[vItem.index];
-                  const isSelected = selected.has(entry.id);
-                  return (
-                    <tr
-                      key={entry.id}
-                      ref={(el) => {
-                        rowRefs.current[entry.id] = el;
-                      }}
-                      data-selected={isSelected}
-                      style={{ height: rowHeight }}
-                      onPointerEnter={
-                        hasRowMenu
-                          ? () => activateRow(entry.id, vItem.index)
-                          : undefined
-                      }
-                      onPointerLeave={hasRowMenu ? deactivateRow : undefined}
-                      className={cn(
-                        "border-border/60 border-b transition-colors",
-                        "data-[selected=true]:bg-primary/5",
-                        "hover:bg-muted/50",
-                      )}
-                    >
-                      {selectable ? (
-                        <td className="text-center">
-                          <div className="flex items-center justify-center">
+        {stacked ? (
+          sortedRows.length === 0 && !loading ? (
+            <div className="p-10 text-center text-muted-foreground">
+              {emptyState}
+            </div>
+          ) : (
+            <>
+              {sortedRows.length > 0 ? (
+                <ul
+                  aria-label="Rows"
+                  className="relative"
+                  style={{ height: totalSize }}
+                >
+                  {virtualItems.map((vItem) => {
+                    const entry = sortedRows[vItem.index];
+                    const isSelected = selected.has(entry.id);
+                    return (
+                      <li
+                        key={entry.id}
+                        ref={virtualizer.measureElement}
+                        data-index={vItem.index}
+                        data-selected={isSelected}
+                        aria-setsize={sortedRows.length}
+                        aria-posinset={vItem.index + 1}
+                        className={cn(
+                          "absolute inset-x-0 top-0 border-border/60 border-b px-3 py-3 transition-colors",
+                          "data-[selected=true]:bg-primary/5",
+                        )}
+                        style={{ transform: `translateY(${vItem.start}px)` }}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          {selectable ? (
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={() => toggleRow(entry.id)}
                               aria-label={`Select row ${vItem.index + 1}`}
                             />
+                          ) : null}
+                          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 font-medium text-foreground">
+                            {titleColumns.map((column) => (
+                              <span
+                                key={column.key}
+                                className="min-w-0 flex-1 truncate"
+                              >
+                                {renderValue(entry, column, vItem.index)}
+                              </span>
+                            ))}
                           </div>
-                        </td>
-                      ) : null}
-                      {orderedColumns.map((column) => (
-                        <td
-                          key={column.key}
-                          className={cn(
-                            "truncate px-4 text-foreground",
-                            alignText(column.align),
-                          )}
-                        >
-                          {!column.cell && column.editable ? (
-                            <EditableCell
-                              value={String(readCell(entry.row, column) ?? "")}
-                              label={`${column.key} for row ${vItem.index + 1}`}
-                              onChange={(next) =>
-                                onCellEdit?.(entry.id, column.key, next)
-                              }
+                          {hasRowMenu ? (
+                            <TableMenu
+                              ariaLabel={`Row ${vItem.index + 1} options`}
+                              triggerClassName="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                              trigger={<MoreVertical className="size-4" />}
+                              items={rowMenuItems({
+                                id: entry.id,
+                                index: vItem.index,
+                                onInsertRow,
+                                onDeleteRow,
+                              })}
                             />
-                          ) : (
-                            readCell(entry.row, column)
-                          )}
-                        </td>
-                      ))}
-                      <td aria-hidden />
-                    </tr>
-                  );
-                })}
-                {paddingBottom > 0 ? (
-                  <tr aria-hidden style={{ height: paddingBottom }}>
-                    <td colSpan={leadColumns + 1} />
-                  </tr>
-                ) : null}
-                {loading ? (
+                          ) : null}
+                        </div>
+                        <StackedFields
+                          className={cn("mt-2", selectable && "pl-8")}
+                          fields={fieldColumns.map((column) => ({
+                            key: column.key,
+                            label: column.header,
+                            value: renderValue(entry, column, vItem.index),
+                            control: !column.cell && !!column.editable,
+                          }))}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+              {loading ? (
+                <SkeletonCards
+                  count={
+                    sortedRows.length === 0
+                      ? Math.max(1, Math.ceil(height / itemEstimate))
+                      : skeletonRows
+                  }
+                  fields={fieldColumns.length}
+                />
+              ) : null}
+            </>
+          )
+        ) : (
+          <table
+            className={cn("border-collapse", sized ? "w-max" : undefined)}
+            style={{
+              tableLayout: "fixed",
+              minWidth: `max(100%, ${minTableWidth}px)`,
+            }}
+          >
+            <colgroup>
+              {selectable ? <col style={{ width: CHECKBOX_WIDTH }} /> : null}
+              {orderedColumns.map((column) => {
+                const override = widths[column.key];
+                const width = override ? `${override}px` : column.width;
+                return (
+                  <col key={column.key} style={width ? { width } : undefined} />
+                );
+              })}
+              {/* Empty filler owns the leftover space — no gap, content unpinned. */}
+              <col />
+            </colgroup>
+
+            <TableHeader
+              columns={orderedColumns}
+              rowHeight={rowHeight}
+              reduce={!!reduce}
+              thRefs={thRefs}
+              selectable={selectable}
+              allSelected={allSelected}
+              someSelected={someSelected}
+              onToggleAll={toggleAll}
+              sort={sort}
+              onToggleSort={toggleSort}
+              resizable={resizable}
+              onResizeStart={startResize}
+              onResizeMove={moveResize}
+              onResizeEnd={endResize}
+              reorderable={reorderable}
+              dragKey={dragKey}
+              dropIndex={dropIndex}
+              onReorderStart={startReorder}
+              onReorderMove={moveReorder}
+              onReorderEnd={endReorder}
+              onInsertColumn={onInsertColumn}
+              onDeleteColumn={onDeleteColumn}
+              onColumnRename={onColumnRename}
+              activeColumn={hasColumnMenu ? activeColumn : null}
+              onColumnActivate={hasColumnMenu ? activateColumn : undefined}
+              onColumnDeactivate={hasColumnMenu ? deactivateColumn : undefined}
+            />
+
+            <tbody>
+              {sortedRows.length === 0 ? (
+                loading ? (
                   <SkeletonRows
-                    count={skeletonRows}
+                    count={Math.max(1, Math.ceil(height / rowHeight))}
                     columns={orderedColumns}
                     selectable={selectable}
                     rowHeight={rowHeight}
                   />
-                ) : null}
-              </>
-            )}
-          </tbody>
-        </table>
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={leadColumns + 1}
+                      className="p-10 text-center text-muted-foreground"
+                    >
+                      {emptyState}
+                    </td>
+                  </tr>
+                )
+              ) : (
+                <>
+                  {paddingTop > 0 ? (
+                    <tr aria-hidden style={{ height: paddingTop }}>
+                      <td colSpan={leadColumns + 1} />
+                    </tr>
+                  ) : null}
+                  {virtualItems.map((vItem) => {
+                    const entry = sortedRows[vItem.index];
+                    const isSelected = selected.has(entry.id);
+                    return (
+                      <tr
+                        key={entry.id}
+                        ref={(el) => {
+                          rowRefs.current[entry.id] = el;
+                        }}
+                        data-selected={isSelected}
+                        style={{ height: rowHeight }}
+                        onPointerEnter={
+                          hasRowMenu
+                            ? () => activateRow(entry.id, vItem.index)
+                            : undefined
+                        }
+                        onPointerLeave={hasRowMenu ? deactivateRow : undefined}
+                        className={cn(
+                          "border-border/60 border-b transition-colors",
+                          "data-[selected=true]:bg-primary/5",
+                          "hover:bg-muted/50",
+                        )}
+                      >
+                        {selectable ? (
+                          <td className="text-center">
+                            <div className="flex items-center justify-center">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleRow(entry.id)}
+                                aria-label={`Select row ${vItem.index + 1}`}
+                              />
+                            </div>
+                          </td>
+                        ) : null}
+                        {orderedColumns.map((column) => (
+                          <td
+                            key={column.key}
+                            className={cn(
+                              "truncate px-4 text-foreground",
+                              alignText(column.align),
+                            )}
+                          >
+                            {renderValue(entry, column, vItem.index)}
+                          </td>
+                        ))}
+                        <td aria-hidden />
+                      </tr>
+                    );
+                  })}
+                  {paddingBottom > 0 ? (
+                    <tr aria-hidden style={{ height: paddingBottom }}>
+                      <td colSpan={leadColumns + 1} />
+                    </tr>
+                  ) : null}
+                  {loading ? (
+                    <SkeletonRows
+                      count={skeletonRows}
+                      columns={orderedColumns}
+                      selectable={selectable}
+                      rowHeight={rowHeight}
+                    />
+                  ) : null}
+                </>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
-      {hasRowMenu && activeRow ? (
+      {hasRowMenu && activeRow && !stacked ? (
         <RowHandle
           rowEl={activeRowEl}
           id={activeRow.id}

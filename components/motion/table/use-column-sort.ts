@@ -60,5 +60,5 @@ export function useColumnSort<T>({
     return copy;
   }, [rows, sort, columns]);
 
-  return { sort, sortedRows, toggleSort };
+  return { sort, sortedRows, toggleSort, setSort: commit };
 }

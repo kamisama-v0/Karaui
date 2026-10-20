@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 // Toggle / ToggleGroup vs SegmentedControl: `SegmentedControl`
@@ -137,6 +138,7 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(function Toggle
       }}
       className={cn(
         itemBase,
+        TOUCH_TARGET_CLASS,
         "rounded-lg focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         sizeClass[size],
         variant === "outline" && "border border-border",
@@ -384,6 +386,7 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
         }}
         className={cn(
           itemBase,
+          TOUCH_TARGET_CLASS,
           sizeClass[ctx.size],
           outline
             ? // Joined segments: neighbours overlap their shared border.

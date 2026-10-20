@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  ChevronDown,
   ChevronRight,
   Columns3,
   EyeOff,
@@ -32,7 +33,19 @@ import { Pagination } from "@/components/motion/pagination";
 import { EASE_OUT, SPRING_LAYOUT, SPRING_PANEL, SPRING_SWAP } from "@/lib/ease";
 import { TOUCH_GESTURE_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
-import type { HeaderCellRefs, SortState, TableColumn } from "./types";
+import {
+  DEFAULT_STACK_BELOW,
+  StackedFields,
+  StackSortSelect,
+  splitStackColumns,
+  useStackedLayout,
+} from "./stacked";
+import type {
+  HeaderCellRefs,
+  MobileLayout,
+  SortState,
+  TableColumn,
+} from "./types";
 import { useColumnReorder } from "./use-column-reorder";
 import { alignFlex, alignText, readCell, readSortValue } from "./utils";
 
@@ -44,7 +57,7 @@ import { alignFlex, alignText, readCell, readSortValue } from "./utils";
  * cell readers, reorder hook, `Checkbox` and `Pagination`.
  */
 
-export type { SortDirection, SortState } from "./types";
+export type { MobileLayout, SortDirection, SortState } from "./types";
 
 /** `string` filters by "contains" (text); `string[]` keeps rows whose value is one of the options (select). */
 export type DataTableFilterValue = string | string[];
@@ -118,6 +131,16 @@ export interface DataTableProps<T> {
   emptyState?: ReactNode;
   /** Narrowest a column without an explicit px width may get before the table scrolls (default 120). */
   minColumnWidth?: number;
+  /**
+   * `"scroll"` (default) keeps today's sideways-scrolling table. `"stack"`
+   * renders each row as a card (title from `primary` columns, the rest as
+   * header: value pairs, with selection, expand and a sort select plus filter
+   * chips above the list) whenever the table's own width is below
+   * `stackBelow`. The server always renders the table.
+   */
+  mobileLayout?: MobileLayout;
+  /** Width in px under which `mobileLayout="stack"` shows cards (default 560). */
+  stackBelow?: number;
   className?: string;
 }
 
@@ -383,10 +406,18 @@ export function DataTable<T>({
   toolbar,
   emptyState = "No results",
   minColumnWidth = 120,
+  mobileLayout = "scroll",
+  stackBelow = DEFAULT_STACK_BELOW,
   className,
 }: DataTableProps<T>) {
   const reduce = useReducedMotion() ?? false;
   const uid = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const stacked = useStackedLayout(
+    rootRef,
+    mobileLayout === "stack",
+    stackBelow,
+  );
   const thRefs: HeaderCellRefs = useRef<
     Record<string, HTMLTableCellElement | null>
   >({});
@@ -708,8 +739,71 @@ export function DataTable<T>({
   const dropAtEnd =
     dragKey !== null && dropIndex !== null && dropIndex >= orderedColumns.length;
 
+  const { primary: titleColumns, fields: fieldColumns } = splitStackColumns(
+    visibleColumns,
+  );
+  const filterChipColumns = visibleColumns.filter((c) => c.filter);
+  const hasSortable = visibleColumns.some((c) => c.sortable);
+
+  const clearFiltersButton =
+    activeFilterCount > 0 || search ? (
+      <button
+        type="button"
+        onClick={clearFilters}
+        className="rounded-md px-2 py-1 font-medium text-foreground text-xs underline-offset-4 hover:underline"
+      >
+        Clear search and filters
+      </button>
+    ) : null;
+
+  const expandButton = (id: string, name: string, isOpen: boolean) => (
+    <button
+      type="button"
+      aria-expanded={isOpen}
+      aria-controls={isOpen ? `${uid}-detail-${id}` : undefined}
+      aria-label={`${isOpen ? "Collapse" : "Expand"} ${name}`}
+      onClick={() => toggleExpanded(id)}
+      className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 pointer-coarse:size-9"
+    >
+      <motion.span
+        aria-hidden
+        className="grid place-items-center"
+        animate={{ rotate: isOpen ? 90 : 0 }}
+        transition={reduce ? { duration: 0 } : SPRING_SWAP}
+      >
+        <ChevronRight className="size-4" />
+      </motion.span>
+    </button>
+  );
+
+  // Height is the point of this panel: it morphs open from 0 to its content height.
+  const detailPanel = (entry: Entry<T>, stackedCard = false) => (
+    <motion.div
+      key="detail"
+      id={`${uid}-detail-${entry.id}`}
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{
+        height: reduce ? { duration: 0 } : { duration: 0.26, ease: EASE_OUT },
+        opacity: { duration: reduce ? 0.12 : 0.2 },
+      }}
+      className="overflow-hidden"
+    >
+      <div className={stackedCard ? "pt-2" : undefined}>
+        <div
+          className={cn("bg-muted/30 px-4 py-3", stackedCard && "rounded-lg")}
+        >
+          {renderExpanded?.(entry.row)}
+        </div>
+      </div>
+    </motion.div>
+  );
+
   return (
     <div
+      ref={rootRef}
+      data-layout={stacked ? "stack" : "table"}
       className={cn(
         "w-full overflow-hidden rounded-2xl border border-border bg-card text-card-foreground text-sm",
         className,
@@ -829,146 +923,51 @@ export function DataTable<T>({
         </AnimatePresence>
       </div>
 
-      <div className="overflow-x-auto [scrollbar-color:var(--border-strong)_transparent] [scrollbar-width:thin]">
-        <table
-          className="w-full border-collapse"
-          style={{ tableLayout: "fixed", minWidth: `max(100%, ${minTableWidth}px)` }}
-        >
-          <colgroup>
-            {selectable ? <col style={{ width: SELECT_COL_PX }} /> : null}
-            {renderExpanded ? <col style={{ width: EXPAND_COL_PX }} /> : null}
-            {visibleColumns.map((column) => (
-              <col
-                key={column.key}
-                style={
-                  column.width && !column.width.endsWith("fr")
-                    ? { width: column.width }
-                    : undefined
-                }
-              />
-            ))}
-          </colgroup>
-          <thead>
-            <tr className="h-10">
+      {stacked ? (
+        <>
+          {selectable || hasSortable || filterChipColumns.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-border border-b bg-muted/40 px-3 py-2">
               {selectable ? (
-                <th className="border-border border-b bg-muted/60">
-                  <div className="flex items-center justify-center">
-                    <Checkbox
-                      checked={allSelected}
-                      indeterminate={!allSelected && someSelected}
-                      onCheckedChange={toggleAll}
-                      aria-label="Select all rows"
-                    />
-                  </div>
-                </th>
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={!allSelected && someSelected}
+                  onCheckedChange={toggleAll}
+                  label="Select all"
+                  className="text-muted-foreground text-xs"
+                />
               ) : null}
-              {renderExpanded ? (
-                <th className="border-border border-b bg-muted/60">
-                  <span className="sr-only">Expand</span>
-                </th>
-              ) : null}
-              {visibleColumns.map((column, index) => {
-                const sortIndex = sorts.findIndex((s) => s.key === column.key);
-                const sortState = sortIndex === -1 ? null : sorts[sortIndex];
-                const filtered = isFilterActive(filters[column.key]);
-                const isDragging = dragKey === column.key;
-                const isLast = index === visibleColumns.length - 1;
-                return (
-                  <motion.th
-                    key={column.key}
-                    ref={(el: HTMLTableCellElement | null) => {
-                      thRefs.current[column.key] = el;
-                    }}
-                    layout={rowLayout}
-                    transition={layoutTransition}
-                    scope="col"
-                    aria-sort={
-                      sortIndex === 0 && sortState
-                        ? sortState.direction === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : undefined
-                    }
-                    data-drop={dropKey === column.key || undefined}
-                    data-dropend={(dropAtEnd && isLast) || undefined}
-                    className={cn(
-                      "group/th relative border-border border-b bg-muted/60 p-0 font-medium text-muted-foreground",
-                      "data-[drop=true]:before:absolute data-[drop=true]:before:inset-y-1 data-[drop=true]:before:left-0 data-[drop=true]:before:w-0.5 data-[drop=true]:before:rounded-full data-[drop=true]:before:bg-primary",
-                      "data-[dropend=true]:after:absolute data-[dropend=true]:after:inset-y-1 data-[dropend=true]:after:right-0 data-[dropend=true]:after:w-0.5 data-[dropend=true]:after:rounded-full data-[dropend=true]:after:bg-primary",
-                      isDragging && "opacity-50",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "relative flex h-10 items-center",
-                        alignFlex(column.align),
-                      )}
-                    >
-                      {reorderable ? (
-                        <button
-                          type="button"
-                          tabIndex={-1}
-                          aria-label={`Drag to reorder ${labelOf(column)} column`}
-                          onPointerDown={(e) => startReorder(column.key, e)}
-                          onPointerMove={moveReorder}
-                          onPointerUp={endReorder}
-                          onPointerCancel={endReorder}
-                          className={cn(
-                            "absolute inset-y-0 left-0 z-[1] flex w-4 cursor-grab touch-none items-center justify-center text-muted-foreground/50 opacity-0 transition-[color,opacity] hover:text-foreground active:cursor-grabbing group-hover/th:opacity-100 [@media(hover:none)]:opacity-100",
-                            TOUCH_GESTURE_CLASS,
-                          )}
-                        >
-                          <GripVertical className="size-3.5" />
-                        </button>
-                      ) : null}
-                      {column.sortable ? (
-                        <button
-                          type="button"
-                          title="Click to sort, Shift+click to add a secondary sort"
-                          onClick={(e) =>
-                            applySort(
-                              nextSortStack(sorts, column.key, e.shiftKey),
-                            )
-                          }
-                          className={cn(
-                            "flex h-full min-w-0 flex-1 select-none items-center gap-1 outline-none transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:underline",
-                            "px-4",
-                            filtered && "pr-9",
-                            alignFlex(column.align),
-                            sortState && "text-foreground",
-                          )}
-                        >
-                          <span className="truncate">{column.header}</span>
-                          <SortIndicator
-                            direction={sortState?.direction ?? null}
-                            priority={sorts.length > 1 && sortState ? sortIndex + 1 : null}
-                            reduce={reduce}
-                          />
-                        </button>
-                      ) : (
-                        <span
-                          className={cn(
-                            "min-w-0 flex-1 truncate",
-                            "px-4",
-                            filtered && "pr-9",
-                            alignText(column.align),
-                          )}
-                        >
-                          {column.header}
-                        </span>
-                      )}
+              <StackSortSelect
+                columns={visibleColumns}
+                value={sorts[0] ?? null}
+                onChange={(next) => applySort(next ? [next] : [])}
+                className="ml-auto"
+              />
+              {filterChipColumns.length > 0 ? (
+                <div className="flex w-full flex-wrap gap-1.5">
+                  {filterChipColumns.map((column) => {
+                    const index = visibleColumns.indexOf(column);
+                    const sortIndex = sorts.findIndex(
+                      (s) => s.key === column.key,
+                    );
+                    return (
                       <ColumnMenu
+                        key={column.key}
+                        chip
                         column={column}
                         thRefs={thRefs}
                         position={index}
-                        sortState={sortState}
-                        filtered={filtered}
+                        sortState={sortIndex === -1 ? null : sorts[sortIndex]}
+                        filtered={isFilterActive(filters[column.key])}
                         filterValue={filters[column.key]}
                         options={
-                          column.filter === "select" ? selectOptions(column) : null
+                          column.filter === "select"
+                            ? selectOptions(column)
+                            : null
                         }
                         canMoveLeft={reorderable && index > 0}
-                        canMoveRight={reorderable && !isLast}
+                        canMoveRight={
+                          reorderable && index < visibleColumns.length - 1
+                        }
                         reorderable={reorderable}
                         canHide={
                           column.hideable !== false && visibleColumns.length > 1
@@ -984,144 +983,342 @@ export function DataTable<T>({
                         onMove={(dir) => moveColumn(column.key, dir)}
                         onHide={() => toggleHidden(column.key)}
                       />
-                    </div>
-                  </motion.th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={spanAll}
-                  className="px-4 py-12 text-center text-muted-foreground"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    {emptyState}
-                    {activeFilterCount > 0 || search ? (
-                      <button
-                        type="button"
-                        onClick={clearFilters}
-                        className="rounded-md px-2 py-1 font-medium text-foreground text-xs underline-offset-4 hover:underline"
-                      >
-                        Clear search and filters
-                      </button>
-                    ) : null}
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              pageRows.map((entry) => {
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {pageRows.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-12 text-center text-muted-foreground">
+              {emptyState}
+              {clearFiltersButton}
+            </div>
+          ) : (
+            <ul aria-label="Rows">
+              {pageRows.map((entry) => {
                 const isSelected = selectedSet.has(entry.id);
                 const isOpen = expandedSet.has(entry.id);
-                const detailId = `${uid}-detail-${entry.id}`;
                 const name = rowLabel(entry.row);
                 return (
-                  <Fragment key={entry.id}>
-                    <motion.tr
-                      layout={rowLayout}
-                      transition={layoutTransition}
-                      initial={hydrated ? { opacity: 0 } : false}
-                      animate={{ opacity: 1 }}
-                      data-selected={isSelected || undefined}
-                      data-expanded={isOpen || undefined}
-                      className={cn(
-                        "h-12 border-border/60 border-b transition-colors hover:bg-muted/40",
-                        "data-[selected=true]:bg-primary/[0.06] data-[expanded=true]:border-transparent",
-                      )}
-                    >
+                  <motion.li
+                    key={entry.id}
+                    layout={rowLayout}
+                    transition={layoutTransition}
+                    initial={hydrated ? { opacity: 0 } : false}
+                    animate={{ opacity: 1 }}
+                    data-selected={isSelected || undefined}
+                    className="border-border/60 border-b px-3 py-3 transition-colors data-[selected=true]:bg-primary/[0.06]"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
                       {selectable ? (
-                        <td className="select-none">
-                          <div className="flex items-center justify-center">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={(checked) =>
-                                toggleRow(entry.id, checked)
-                              }
-                              aria-label={`Select ${name}`}
-                            />
-                          </div>
-                        </td>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) =>
+                            toggleRow(entry.id, checked)
+                          }
+                          aria-label={`Select ${name}`}
+                        />
                       ) : null}
-                      {renderExpanded ? (
-                        <td>
-                          <div className="flex items-center justify-center">
-                            <button
-                              type="button"
-                              aria-expanded={isOpen}
-                              aria-controls={isOpen ? detailId : undefined}
-                              aria-label={`${isOpen ? "Collapse" : "Expand"} ${name}`}
-                              onClick={() => toggleExpanded(entry.id)}
-                              className="grid size-7 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
-                            >
-                              <motion.span
-                                aria-hidden
-                                className="grid place-items-center"
-                                animate={{ rotate: isOpen ? 90 : 0 }}
-                                transition={
-                                  reduce ? { duration: 0 } : SPRING_SWAP
-                                }
-                              >
-                                <ChevronRight className="size-4" />
-                              </motion.span>
-                            </button>
-                          </div>
-                        </td>
-                      ) : null}
-                      {visibleColumns.map((column) => (
-                        <motion.td
-                          key={column.key}
-                          layout={rowLayout}
-                          transition={layoutTransition}
-                          className={cn(
-                            "truncate px-4 text-foreground",
-                            alignText(column.align),
-                          )}
-                        >
-                          {readCell(entry.row, column)}
-                        </motion.td>
-                      ))}
-                    </motion.tr>
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 font-medium text-foreground">
+                        {titleColumns.map((column) => (
+                          <span key={column.key} className="min-w-0 truncate">
+                            {readCell(entry.row, column)}
+                          </span>
+                        ))}
+                      </div>
+                      {renderExpanded
+                        ? expandButton(entry.id, name, isOpen)
+                        : null}
+                    </div>
+                    <StackedFields
+                      className={cn("mt-2", selectable && "pl-8")}
+                      fields={fieldColumns.map((column) => ({
+                        key: column.key,
+                        label: column.header,
+                        value: readCell(entry.row, column),
+                      }))}
+                    />
                     <AnimatePresence initial={false}>
                       {renderExpanded && isOpen ? (
-                        <motion.tr
-                          key="detail"
-                          layout={rowLayout}
-                          transition={layoutTransition}
-                          className="border-border/60 border-b"
-                        >
-                          <td colSpan={spanAll} className="p-0">
-                            {/* Height is the point of this panel: it morphs
-                                open from 0 to its content height. */}
-                            <motion.div
-                              id={detailId}
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{
-                                height: reduce
-                                  ? { duration: 0 }
-                                  : { duration: 0.26, ease: EASE_OUT },
-                                opacity: { duration: reduce ? 0.12 : 0.2 },
-                              }}
-                              className="overflow-hidden"
-                            >
-                              <div className="bg-muted/30 px-4 py-3">
-                                {renderExpanded(entry.row)}
-                              </div>
-                            </motion.div>
-                          </td>
-                        </motion.tr>
+                        detailPanel(entry, true)
                       ) : null}
                     </AnimatePresence>
-                  </Fragment>
+                  </motion.li>
                 );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+              })}
+            </ul>
+          )}
+        </>
+      ) : (
+        <div className="overflow-x-auto [scrollbar-color:var(--border-strong)_transparent] [scrollbar-width:thin]">
+          <table
+            className="w-full border-collapse"
+            style={{ tableLayout: "fixed", minWidth: `max(100%, ${minTableWidth}px)` }}
+          >
+            <colgroup>
+              {selectable ? <col style={{ width: SELECT_COL_PX }} /> : null}
+              {renderExpanded ? <col style={{ width: EXPAND_COL_PX }} /> : null}
+              {visibleColumns.map((column) => (
+                <col
+                  key={column.key}
+                  style={
+                    column.width && !column.width.endsWith("fr")
+                      ? { width: column.width }
+                      : undefined
+                  }
+                />
+              ))}
+            </colgroup>
+            <thead>
+              <tr className="h-10">
+                {selectable ? (
+                  <th className="border-border border-b bg-muted/60">
+                    <div className="flex items-center justify-center">
+                      <Checkbox
+                        checked={allSelected}
+                        indeterminate={!allSelected && someSelected}
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all rows"
+                      />
+                    </div>
+                  </th>
+                ) : null}
+                {renderExpanded ? (
+                  <th className="border-border border-b bg-muted/60">
+                    <span className="sr-only">Expand</span>
+                  </th>
+                ) : null}
+                {visibleColumns.map((column, index) => {
+                  const sortIndex = sorts.findIndex((s) => s.key === column.key);
+                  const sortState = sortIndex === -1 ? null : sorts[sortIndex];
+                  const filtered = isFilterActive(filters[column.key]);
+                  const isDragging = dragKey === column.key;
+                  const isLast = index === visibleColumns.length - 1;
+                  return (
+                    <motion.th
+                      key={column.key}
+                      ref={(el: HTMLTableCellElement | null) => {
+                        thRefs.current[column.key] = el;
+                      }}
+                      layout={rowLayout}
+                      transition={layoutTransition}
+                      scope="col"
+                      aria-sort={
+                        sortIndex === 0 && sortState
+                          ? sortState.direction === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : undefined
+                      }
+                      data-drop={dropKey === column.key || undefined}
+                      data-dropend={(dropAtEnd && isLast) || undefined}
+                      className={cn(
+                        "group/th relative border-border border-b bg-muted/60 p-0 font-medium text-muted-foreground",
+                        "data-[drop=true]:before:absolute data-[drop=true]:before:inset-y-1 data-[drop=true]:before:left-0 data-[drop=true]:before:w-0.5 data-[drop=true]:before:rounded-full data-[drop=true]:before:bg-primary",
+                        "data-[dropend=true]:after:absolute data-[dropend=true]:after:inset-y-1 data-[dropend=true]:after:right-0 data-[dropend=true]:after:w-0.5 data-[dropend=true]:after:rounded-full data-[dropend=true]:after:bg-primary",
+                        isDragging && "opacity-50",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "relative flex h-10 items-center",
+                          alignFlex(column.align),
+                        )}
+                      >
+                        {reorderable ? (
+                          <button
+                            type="button"
+                            tabIndex={-1}
+                            aria-label={`Drag to reorder ${labelOf(column)} column`}
+                            onPointerDown={(e) => startReorder(column.key, e)}
+                            onPointerMove={moveReorder}
+                            onPointerUp={endReorder}
+                            onPointerCancel={endReorder}
+                            className={cn(
+                              "absolute inset-y-0 left-0 z-[1] flex w-4 cursor-grab touch-none items-center justify-center text-muted-foreground/50 opacity-0 transition-[color,opacity] hover:text-foreground active:cursor-grabbing group-hover/th:opacity-100 [@media(hover:none)]:opacity-100",
+                              TOUCH_GESTURE_CLASS,
+                            )}
+                          >
+                            <GripVertical className="size-3.5" />
+                          </button>
+                        ) : null}
+                        {column.sortable ? (
+                          <button
+                            type="button"
+                            title="Click to sort, Shift+click to add a secondary sort"
+                            onClick={(e) =>
+                              applySort(
+                                nextSortStack(sorts, column.key, e.shiftKey),
+                              )
+                            }
+                            className={cn(
+                              "flex h-full min-w-0 flex-1 select-none items-center gap-1 outline-none transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:underline",
+                              "px-4",
+                              filtered && "pr-9",
+                              alignFlex(column.align),
+                              sortState && "text-foreground",
+                            )}
+                          >
+                            <span className="truncate">{column.header}</span>
+                            <SortIndicator
+                              direction={sortState?.direction ?? null}
+                              priority={sorts.length > 1 && sortState ? sortIndex + 1 : null}
+                              reduce={reduce}
+                            />
+                          </button>
+                        ) : (
+                          <span
+                            className={cn(
+                              "min-w-0 flex-1 truncate",
+                              "px-4",
+                              filtered && "pr-9",
+                              alignText(column.align),
+                            )}
+                          >
+                            {column.header}
+                          </span>
+                        )}
+                        <ColumnMenu
+                          column={column}
+                          thRefs={thRefs}
+                          position={index}
+                          sortState={sortState}
+                          filtered={filtered}
+                          filterValue={filters[column.key]}
+                          options={
+                            column.filter === "select" ? selectOptions(column) : null
+                          }
+                          canMoveLeft={reorderable && index > 0}
+                          canMoveRight={reorderable && !isLast}
+                          reorderable={reorderable}
+                          canHide={
+                            column.hideable !== false && visibleColumns.length > 1
+                          }
+                          onSort={(direction) =>
+                            applySort(
+                              direction
+                                ? [{ key: column.key, direction }]
+                                : sorts.filter((s) => s.key !== column.key),
+                            )
+                          }
+                          onFilter={(value) => setColumnFilter(column.key, value)}
+                          onMove={(dir) => moveColumn(column.key, dir)}
+                          onHide={() => toggleHidden(column.key)}
+                        />
+                      </div>
+                    </motion.th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={spanAll}
+                    className="px-4 py-12 text-center text-muted-foreground"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      {emptyState}
+                      {clearFiltersButton}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                pageRows.map((entry) => {
+                  const isSelected = selectedSet.has(entry.id);
+                  const isOpen = expandedSet.has(entry.id);
+                  const detailId = `${uid}-detail-${entry.id}`;
+                  const name = rowLabel(entry.row);
+                  return (
+                    <Fragment key={entry.id}>
+                      <motion.tr
+                        layout={rowLayout}
+                        transition={layoutTransition}
+                        initial={hydrated ? { opacity: 0 } : false}
+                        animate={{ opacity: 1 }}
+                        data-selected={isSelected || undefined}
+                        data-expanded={isOpen || undefined}
+                        className={cn(
+                          "h-12 border-border/60 border-b transition-colors hover:bg-muted/40",
+                          "data-[selected=true]:bg-primary/[0.06] data-[expanded=true]:border-transparent",
+                        )}
+                      >
+                        {selectable ? (
+                          <td className="select-none">
+                            <div className="flex items-center justify-center">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) =>
+                                  toggleRow(entry.id, checked)
+                                }
+                                aria-label={`Select ${name}`}
+                              />
+                            </div>
+                          </td>
+                        ) : null}
+                        {renderExpanded ? (
+                          <td>
+                            <div className="flex items-center justify-center">
+                              <button
+                                type="button"
+                                aria-expanded={isOpen}
+                                aria-controls={isOpen ? detailId : undefined}
+                                aria-label={`${isOpen ? "Collapse" : "Expand"} ${name}`}
+                                onClick={() => toggleExpanded(entry.id)}
+                                className="grid size-7 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+                              >
+                                <motion.span
+                                  aria-hidden
+                                  className="grid place-items-center"
+                                  animate={{ rotate: isOpen ? 90 : 0 }}
+                                  transition={
+                                    reduce ? { duration: 0 } : SPRING_SWAP
+                                  }
+                                >
+                                  <ChevronRight className="size-4" />
+                                </motion.span>
+                              </button>
+                            </div>
+                          </td>
+                        ) : null}
+                        {visibleColumns.map((column) => (
+                          <motion.td
+                            key={column.key}
+                            layout={rowLayout}
+                            transition={layoutTransition}
+                            className={cn(
+                              "truncate px-4 text-foreground",
+                              alignText(column.align),
+                            )}
+                          >
+                            {readCell(entry.row, column)}
+                          </motion.td>
+                        ))}
+                      </motion.tr>
+                      <AnimatePresence initial={false}>
+                        {renderExpanded && isOpen ? (
+                          <motion.tr
+                            key="detail"
+                            layout={rowLayout}
+                            transition={layoutTransition}
+                            className="border-border/60 border-b"
+                          >
+                            <td colSpan={spanAll} className="p-0">
+                              {detailPanel(entry)}
+                            </td>
+                          </motion.tr>
+                        ) : null}
+                      </AnimatePresence>
+                    </Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {paged ? (
         <div className="flex flex-wrap items-center justify-between gap-2 border-border border-t px-3 py-2">
@@ -1213,7 +1410,10 @@ function ColumnMenu<T>({
   onFilter,
   onMove,
   onHide,
+  chip = false,
 }: {
+  /** Render the trigger as a labelled chip anchored to itself (stacked layout) instead of a header-cell button. */
+  chip?: boolean;
   column: DataTableColumn<T>;
   thRefs: HeaderCellRefs;
   position: number;
@@ -1237,9 +1437,11 @@ function ColumnMenu<T>({
 
   // Anchor to the whole header cell, so the panel lines up with the column.
   const getAnchor = useCallback((): AnchorRect | null => {
-    const r = thRefs.current[column.key]?.getBoundingClientRect();
+    const r = (
+      chip ? triggerRef.current : thRefs.current[column.key]
+    )?.getBoundingClientRect();
     return r ? { left: r.left, right: r.right, bottom: r.bottom } : null;
-  }, [thRefs, column.key]);
+  }, [chip, thRefs, column.key]);
 
   const hasSort = !!column.sortable;
   const hasFilter = !!column.filter;
@@ -1249,26 +1451,51 @@ function ColumnMenu<T>({
 
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={`${label} column options`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "-translate-y-1/2 absolute top-1/2 right-1 grid size-6 place-items-center rounded-md bg-muted outline-none transition-[color,background-color,opacity] hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50",
-          filtered || open
-            ? "text-primary opacity-100"
-            : "opacity-0 group-hover/th:opacity-100 [@media(hover:none)]:opacity-100",
-        )}
-      >
-        {filtered ? (
-          <ListFilter className="size-3.5" />
-        ) : (
-          <MoreHorizontal className="size-3.5" />
-        )}
-      </button>
+      {chip ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className={cn(
+            "inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 pointer-coarse:h-9 pointer-coarse:px-3",
+            filtered
+              ? "border-primary/40 bg-primary/10 text-foreground"
+              : "border-border bg-background text-muted-foreground",
+          )}
+        >
+          {filtered ? (
+            <ListFilter aria-hidden className="size-3.5 text-primary" />
+          ) : null}
+          {label}
+          <span className="sr-only">
+            {filtered ? " (filtered)" : ""} column options
+          </span>
+          <ChevronDown aria-hidden className="size-3.5" />
+        </button>
+      ) : (
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-label={`${label} column options`}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className={cn(
+            "-translate-y-1/2 absolute top-1/2 right-1 grid size-6 place-items-center rounded-md bg-muted outline-none transition-[color,background-color,opacity] hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50",
+            filtered || open
+              ? "text-primary opacity-100"
+              : "opacity-0 group-hover/th:opacity-100 [@media(hover:none)]:opacity-100",
+          )}
+        >
+          {filtered ? (
+            <ListFilter className="size-3.5" />
+          ) : (
+            <MoreHorizontal className="size-3.5" />
+          )}
+        </button>
+      )}
       <Panel
         open={open}
         onClose={close}

@@ -24,7 +24,19 @@ export type TableColumn<T> = {
   editable?: boolean;
   /** Value used for sorting. Falls back to `row[key]`. */
   sortValue?: (row: T) => string | number;
+  /** Stacked layout (`mobileLayout="stack"`): show this cell in the card title.
+   * Defaults to the first column when no column sets it. */
+  primary?: boolean;
+  /** Stacked layout: leave this column out of the card's label/value pairs. */
+  hideOnMobile?: boolean;
 };
+
+/**
+ * Narrow-container layout. `"scroll"` keeps the table and scrolls it sideways;
+ * `"stack"` renders one card per row while the table's own width is below
+ * `stackBelow`.
+ */
+export type MobileLayout = "scroll" | "stack";
 
 export type InsertPosition = "before" | "after";
 
@@ -74,6 +86,15 @@ export interface TableProps<T> {
   /** How many skeleton rows to show while loading more (default 3). */
   skeletonRows?: number;
   emptyState?: ReactNode;
+  /**
+   * `"scroll"` (default) keeps today's sideways-scrolling table. `"stack"`
+   * swaps to a virtualized card list (title from `primary` columns, the rest as
+   * header: value pairs, editable cells stay inputs) whenever the table's own
+   * width is below `stackBelow`. The server always renders the table.
+   */
+  mobileLayout?: MobileLayout;
+  /** Width in px under which `mobileLayout="stack"` shows cards (default 560). */
+  stackBelow?: number;
   className?: string;
 }
 

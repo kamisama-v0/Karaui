@@ -122,6 +122,7 @@ export function TableAsyncPreview() {
           rowHeight={52}
           onEndReached={loadMore}
           loading={loading}
+          mobileLayout="stack"
           className="rounded-2xl"
         />
       </div>

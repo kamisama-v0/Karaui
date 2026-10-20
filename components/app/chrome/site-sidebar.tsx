@@ -15,6 +15,7 @@ const PATTERNS = [
   { slug: "motion-patterns", name: "Motion Guides", href: "/docs/motion-patterns" },
   { slug: "ai-agents", name: "Agent Guide", href: "/docs/ai-agents" },
   { slug: "openui", name: "OpenUI", href: "/docs/openui" },
+  { slug: "mobile", name: "Mobile & responsive", href: "/docs/mobile" },
 ];
 
 const SIDEBAR_CATEGORY_ORDER: Record<string, number> = {

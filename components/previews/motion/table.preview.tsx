@@ -80,6 +80,9 @@ function StatusBadge({ status }: { status: Person["status"] }) {
 export function TablePreview() {
   const data = useMemo(() => buildPeople(10_000), []);
   const [selected, setSelected] = useState<string[]>([]);
+  // "phone" squeezes the table to a 375px frame so mobileLayout="stack" swaps
+  // the rows for cards; on a real phone it stacks without the toggle.
+  const [width, setWidth] = useState<"wide" | "phone">("wide");
 
   const columns = useMemo<TableColumn<Person>[]>(
     () => [
@@ -87,10 +90,11 @@ export function TablePreview() {
         key: "name",
         header: "Name",
         sortable: true,
+        primary: true,
         width: "1.4fr",
         cell: (row) => <span className="font-medium">{row.name}</span>,
       },
-      { key: "email", header: "Email", width: "1.8fr" },
+      { key: "email", header: "Email", width: "1.8fr", hideOnMobile: true },
       { key: "role", header: "Role", sortable: true, width: "120px" },
       {
         key: "status",
@@ -114,12 +118,35 @@ export function TablePreview() {
 
   return (
     <div className="flex w-full justify-center p-4">
-      <div className="flex w-full flex-col gap-2">
-        <div className="flex items-center justify-between px-1 text-muted-foreground text-xs">
-          <span>{data.length.toLocaleString("en-US")} rows</span>
-          {selected.length > 0 ? (
-            <span>{selected.length.toLocaleString("en-US")} selected</span>
-          ) : null}
+      <div
+        className={cn(
+          "mx-auto flex w-full flex-col gap-2",
+          width === "phone" && "max-w-[375px]",
+        )}
+      >
+        <div className="flex items-center justify-between gap-3 px-1 text-muted-foreground text-xs">
+          <span>
+            {data.length.toLocaleString("en-US")} rows
+            {selected.length > 0
+              ? ` · ${selected.length.toLocaleString("en-US")} selected`
+              : null}
+          </span>
+          <fieldset
+            aria-label="Preview width"
+            className="inline-flex rounded-lg border border-border p-0.5 text-muted-foreground"
+          >
+            {(["wide", "phone"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={width === option}
+                onClick={() => setWidth(option)}
+                className="rounded-md px-2 py-0.5 text-xs capitalize transition-colors hover:text-foreground aria-pressed:bg-muted aria-pressed:text-foreground"
+              >
+                {option}
+              </button>
+            ))}
+          </fieldset>
         </div>
         <Table
           data={data}
@@ -132,6 +159,7 @@ export function TablePreview() {
           defaultSort={{ key: "mrr", direction: "desc" }}
           height={420}
           rowHeight={52}
+          mobileLayout="stack"
           className="rounded-2xl"
         />
       </div>

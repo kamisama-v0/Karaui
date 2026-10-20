@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/motion/button";
 import { DashboardShell, type DashboardNavGroup } from "@/components/motion/dashboard-shell";
+import { SegmentedControl } from "@/components/motion/segmented-control";
+import { cn } from "@/lib/utils";
 
 const NAV: DashboardNavGroup[] = [
   {
@@ -56,10 +58,25 @@ const BARS = [42, 58, 51, 70, 64, 82, 76, 90, 72, 86, 94, 88];
 
 export function DashboardShellPreview() {
   const [active, setActive] = useState("overview");
+  const [frame, setFrame] = useState("wide");
   return (
-    <div className="h-[26rem] w-full max-w-[40rem]">
+    <div className="flex w-full max-w-[40rem] flex-col items-center gap-3">
+      <SegmentedControl
+        aria-label="Frame width"
+        size="sm"
+        value={frame}
+        onValueChange={setFrame}
+        options={[
+          { value: "wide", label: "Wide" },
+          { value: "narrow", label: "Narrow" },
+        ]}
+      />
+      {/* The shell folds on its own width, not the viewport: narrow the frame
+          and the sidebar moves into the drawer even on a desktop screen. */}
+      <div className={cn("h-[26rem] w-full", frame === "narrow" && "max-w-[22rem]")}>
       <DashboardShell
         nav={NAV}
+        mobileBelow={560}
         active={active}
         onActiveChange={setActive}
         brand={{ name: "Northwind" }}
@@ -97,6 +114,7 @@ export function DashboardShellPreview() {
           </div>
         </div>
       </DashboardShell>
+      </div>
     </div>
   );
 }

@@ -51,6 +51,46 @@ export const TOUCH_GESTURE_CONTENT_CLASS =
   "[-webkit-touch-callout:none] pointer-coarse:select-none";
 
 /**
+ * Grow a small control's *hit area* to at least 44×44px (WCAG 2.5.5, Apple
+ * HIG) on a coarse pointer, without changing what it looks like or the space
+ * it takes in layout. An invisible `::after` box, centered on the control and
+ * `max(100%, 2.75rem)` on each axis, catches the taps: a 32px icon button
+ * reaches 6px past each edge, a wide 40px button only grows vertically, and a
+ * control already 44px or larger is left as it is. Hit-testing a pseudo
+ * element lands on its owner, so handlers, focus and `:active` all behave.
+ *
+ * Mouse and trackpad rendering is untouched — nothing here applies outside
+ * `pointer: coarse`. Requirements on the element it goes on:
+ * - It must be the containing block: add `relative` (and keep it mergeable, so
+ *   a consumer's `absolute` still wins through `cn`).
+ * - It must not clip itself (`overflow-hidden`), or the overhang is clipped
+ *   away along with its hit area.
+ * - It must render children: `<input>` and other void elements have no
+ *   `::after`. Put it on the wrapper or label instead.
+ * - It must not already use `::after` for something visible.
+ *
+ * Centered 44px means two 32px buttons with a 4px gap overlap by 8px; the
+ * later one wins that strip, which still ends well short of the earlier
+ * button's visual center. Below a ~32px pitch the later neighbour starts
+ * eating into that center — use `TOUCH_TARGET_Y_CLASS` for such dense rows.
+ *
+ * The overhang is real geometry: inside a scroll container it counts as
+ * scrollable overflow, so a control flush against a scroller's edge can add a
+ * few pixels of scroll on touch screens. Give such a scroller a little padding
+ * on that side.
+ */
+export const TOUCH_TARGET_CLASS =
+  "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-[max(100%,2.75rem)] pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2 pointer-coarse:after:content-['']";
+
+/**
+ * `TOUCH_TARGET_CLASS` on the vertical axis only, for controls packed tighter
+ * than ~32px apart in a row (pagination dots, dense swatches), where growing
+ * sideways would hand most of each control to its neighbour. Same rules.
+ */
+export const TOUCH_TARGET_Y_CLASS =
+  "pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:top-1/2 pointer-coarse:after:h-[max(100%,2.75rem)] pointer-coarse:after:-translate-y-1/2 pointer-coarse:after:content-['']";
+
+/**
  * Suppress selection on `element` for as long as a gesture is running on it,
  * whatever the primary pointer of the machine happens to be. Returns the
  * release. Inline, so it wins over the class above and is gone again the

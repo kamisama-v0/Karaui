@@ -2499,7 +2499,7 @@ export const registry: CategoryEntry[] = [
         slug: "dashboard-shell",
         name: "Dashboard Shell",
         description:
-          "Container-sized app shell whose sidebar collapses to icons with tooltips and a gliding active pill, a top bar with a Mod+K search field and avatar menu, and a content slot with breadcrumbs, title and actions that cross-fades per page; below `md` the sidebar moves into a Drawer — a data-driven complement to the viewport-height AnimatedSidebar primitives.",
+          "Container-sized app shell whose sidebar collapses to icons with tooltips and a gliding active pill, a top bar with a Mod+K search field and avatar menu, and a content slot with breadcrumbs, title and actions that cross-fades per page; below its own `mobileBelow` width (768px default) the sidebar moves into a Drawer — a data-driven complement to the viewport-height AnimatedSidebar primitives.",
         file: "components/motion/dashboard-shell.tsx",
         badge: "new",
         launchedAt: "2026-10-15",

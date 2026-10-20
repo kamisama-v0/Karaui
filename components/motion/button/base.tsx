@@ -16,6 +16,7 @@ import {
 } from "react";
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";
 import { useHoverCapable } from "@/lib/hooks/use-hover-capable";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline";
@@ -109,10 +110,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         transition={SPRING_PRESS}
         onPointerDown={handlePointerDown}
         className={cn(
-          "inline-flex items-center justify-center font-medium select-none",
+          "relative inline-flex items-center justify-center font-medium select-none",
           "transition-colors",
           "disabled:pointer-events-none disabled:opacity-50",
-          ripple && "relative overflow-hidden",
+          // The ripple layer clips itself, so on a touch screen the button can
+          // stop clipping and let its enlarged hit area overhang.
+          ripple && "overflow-hidden pointer-coarse:overflow-visible",
+          TOUCH_TARGET_CLASS,
           VARIANT_CLASS[variant],
           SIZE_CLASS[size],
           className,
@@ -174,8 +178,9 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
         whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
         transition={SPRING_PRESS}
         className={cn(
-          "inline-flex items-center justify-center font-medium select-none",
+          "relative inline-flex items-center justify-center font-medium select-none",
           "transition-colors",
+          TOUCH_TARGET_CLASS,
           VARIANT_CLASS[variant],
           SIZE_CLASS[size],
           className,

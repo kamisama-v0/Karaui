@@ -10,6 +10,7 @@ import {
 } from "motion/react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { EASE_OUT, SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
+import { TOUCH_TARGET_CLASS } from "@/lib/touch";
 import { cn } from "@/lib/utils";
 
 export type CopyButtonStatus = "idle" | "copied" | "error";
@@ -218,6 +219,7 @@ export function CopyButton({
       data-status={status}
       className={cn(
         "relative inline-flex shrink-0 select-none items-center justify-center font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+        TOUCH_TARGET_CLASS,
         VARIANT_CLASS[variant],
         SIZE_CLASS[resolvedSize],
         className,
