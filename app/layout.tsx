@@ -1,6 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
   Caveat,
   Geist,
@@ -11,23 +9,9 @@ import {
   Space_Grotesk,
 } from "next/font/google";
 import "./globals.css";
-import { GoogleAnalytics } from "@/components/app/analytics/google-analytics";
 import { ThemeProvider } from "@/components/app/chrome/theme-provider";
 import { PreferencesProvider } from "@/components/app/preferences/preferences-provider";
-import { PreferencesPanel } from "@/components/app/preferences/preferences-panel";
-import { SiteHeader } from "@/components/app/chrome/site-header";
-import { SiteDock } from "@/components/app/chrome/site-dock";
-import { SiteFrame } from "@/components/app/chrome/site-frame";
-import { KeyboardShortcuts } from "@/components/app/chrome/keyboard-shortcuts";
-import { JsonLd } from "@/components/app/analytics/json-ld";
-import { getGithubStarCount } from "@/lib/github";
-import {
-  AUTHOR,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_TITLE,
-  siteJsonLd,
-} from "@/lib/seo";
+import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { accentInitScript, accentStylesheet } from "@/lib/accents";
 import { designStylesStylesheet, styleInitScript } from "@/lib/styles";
@@ -154,10 +138,15 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const githubStarCount = await getGithubStarCount();
-  const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
-
+/*
+ * The root layout owns only the document: fonts, the pre-paint theme, style
+ * and accent init scripts, and the providers. Site chrome (header, sidebar,
+ * dock, analytics) lives in app/(site)/layout.tsx via <SiteChrome>, so bare
+ * routes such as /preview/* (the viewport switcher's iframes) get the same
+ * theme and tokens with nothing drawn around them. Route groups never change
+ * a URL.
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -179,36 +168,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           id="karaui-design-styles"
           dangerouslySetInnerHTML={{ __html: STYLES_CSS }}
         />
-        {process.env.NODE_ENV === "production" && (
-          <script
-            defer
-            src="https://collect.tracwell.app/script.js"
-            data-project-key="tw_live_b83ebcb2a50b4e3b82f65ca32c086623"
-            data-collection-mode="private"
-            data-consent="granted"
-            data-respect-do-not-track="true"
-          />
-        )}
         <link rel="icon" type="image/png" href="/karaui-mark.png" />
         <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
         <link rel="alternate" type="application/json" title="Component registry" href="/r" />
         <link rel="alternate" type="application/json" title="shadcn registry" href="/registry.json" />
       </head>
       <body className="min-h-screen antialiased">
-        <JsonLd data={siteJsonLd()} />
         <ThemeProvider>
-          <PreferencesProvider>
-            <KeyboardShortcuts />
-            <SiteHeader githubStarCount={githubStarCount} />
-            <main className="pt-14 pb-32">
-              <SiteFrame>{children}</SiteFrame>
-            </main>
-            <SiteDock />
-            <PreferencesPanel />
-            {process.env.NODE_ENV === "production" && <Analytics />}
-            {process.env.NODE_ENV === "production" && <SpeedInsights />}
-            <GoogleAnalytics measurementId={googleAnalyticsId} />
-          </PreferencesProvider>
+          <PreferencesProvider>{children}</PreferencesProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -43,6 +43,11 @@ export type ComponentEntry = {
   examples?: ComponentExample[];
   /** Optional behavior guide rendered on the component documentation page. */
   guide?: AgentGuide;
+  /**
+   * Max width of the block viewer. Most blocks are widget-sized and use the
+   * default cap; page-like blocks (app shells, settings, inboxes) set "wide".
+   */
+  previewWidth?: "default" | "wide";
 };
 
 export type CategoryEntry = {
@@ -2403,6 +2408,7 @@ export const registry: CategoryEntry[] = [
       },
       {
         slug: "chat-app",
+        previewWidth: "wide",
         name: "Chat App",
         description:
           "A complete agent conversation workspace composing navigation, messages, streaming, planning, approvals, tools, code, diffs, generated media, sources, and prompt input.",
@@ -2446,6 +2452,7 @@ export const registry: CategoryEntry[] = [
     components: [
       {
         slug: "inbox-app",
+        previewWidth: "wide",
         name: "Inbox App",
         description:
           "Mail client with a folder rail and unread counts (virtual folders like Starred via `filter`), a searchable message list with unread dots, stars, checkboxes and a gliding selection highlight, a reading pane that cross-fades between messages, and swipe-right-to-archive / swipe-left-to-delete rows that slide out with an Undo bar.",
@@ -2480,6 +2487,7 @@ export const registry: CategoryEntry[] = [
       },
       {
         slug: "file-manager",
+        previewWidth: "wide",
         name: "File Manager",
         description:
           "File browser with breadcrumb navigation, folders that slide in from the side you travel, grid/list views, click / Cmd-Ctrl-click / Shift-click range selection with arrow-key movement, kind-tinted file icons, a sort menu, a storage usage meter, and a drop overlay that adds dragged-in files to the open folder.",
@@ -2497,6 +2505,7 @@ export const registry: CategoryEntry[] = [
       },
       {
         slug: "dashboard-shell",
+        previewWidth: "wide",
         name: "Dashboard Shell",
         description:
           "Container-sized app shell whose sidebar collapses to icons with tooltips and a gliding active pill, a top bar with a Mod+K search field and avatar menu, and a content slot with breadcrumbs, title and actions that cross-fades per page; below its own `mobileBelow` width (768px default) the sidebar moves into a Drawer — a data-driven complement to the viewport-height AnimatedSidebar primitives.",
@@ -2633,6 +2642,7 @@ export const registry: CategoryEntry[] = [
       },
       {
         slug: "settings-page",
+        previewWidth: "wide",
         name: "Settings Page",
         description:
           "Account settings with a side nav whose pill glides between Profile, Notifications, Appearance and Billing, sections built from inline edits, switches, selects, toggle groups and usage bars, a draft that slides up a sticky unsaved-changes bar with Reset and an async Save that shakes on failure, and a danger zone behind a type-to-confirm dialog.",
@@ -3109,6 +3119,7 @@ export const registry: CategoryEntry[] = [
       },
       {
         slug: "kanban-board",
+        previewWidth: "wide",
         name: "Kanban Board",
         description:
           "Task board whose cards drag within and across columns, opening a dashed drop slot where they will land, lighting up the column underneath and flying into place via shared layout. Space, arrows and Escape move cards from the keyboard with live announcements. Columns show count badges, cards carry tags, assignee initials and a priority dot, and on mobile the columns scroll horizontally with snap. Controlled/uncontrolled, reduced-motion safe.",
@@ -3492,6 +3503,30 @@ export function allComponents() {
   return registry.flatMap((c) =>
     c.components.map((comp) => ({ ...comp, category: c }))
   );
+}
+
+/**
+ * The `@karaui/<slug>` that installs a component, or one of its variants.
+ * A variant without its own install slug borrows a sibling's that ships the
+ * same file; null when nothing installs exactly that variant.
+ */
+export function installSlugFor(comp: ComponentEntry, example?: ComponentExample) {
+  const hasVariantInstalls = comp.examples?.some((e) => e.installSlug) ?? false;
+  if (!example) return hasVariantInstalls ? null : comp.slug;
+  if (example.installSlug) return example.installSlug;
+  const sibling = comp.examples?.find((e) => e.installSlug && e.file === example.file);
+  if (sibling?.installSlug) return sibling.installSlug;
+  return hasVariantInstalls ? null : comp.slug;
+}
+
+/** Files an install of this component (or variant) starts from. */
+export function entryFilesFor(comp: ComponentEntry, example?: ComponentExample) {
+  if (example?.installSlug) return [example.file];
+  const slug = installSlugFor(comp, example);
+  if (example && slug && slug !== comp.slug) return [example.file];
+  const files = slug === comp.slug ? [comp.file, ...(comp.extraFiles ?? [])] : [];
+  if (example && !files.includes(example.file)) files.push(example.file);
+  return files;
 }
 
 /** Top-level components and total installable targets (counting variants). */

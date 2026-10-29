@@ -6,6 +6,7 @@ import {
 } from "@shikijs/transformers";
 import { CopyButton } from "./copy-button";
 import { ExpandableCode } from "./expandable-code";
+import { CODE_HTML_CLASS } from "./code-style";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
 
@@ -37,17 +38,16 @@ const LANG_LABELS: Record<string, string> = {
   bash: "Shell",
 };
 
-export async function CodeBlock({
-  code,
-  lang = "tsx",
-  filename,
-  className,
-}: Props) {
-  const shikiLang = LANG_MAP[lang.toLowerCase()] ?? lang;
-  const langLabel =
-    LANG_LABELS[shikiLang] ?? LANG_LABELS[lang] ?? lang.toUpperCase();
+/** Language key for a file path, by extension (defaults to tsx). */
+export function langForPath(path: string) {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return ext in LANG_MAP ? ext : "tsx";
+}
 
-  const html = await codeToHtml(code, {
+/** Shiki HTML in the site's dual light/dark theme. Server only. */
+export function highlightCode(code: string, lang = "tsx") {
+  const shikiLang = LANG_MAP[lang.toLowerCase()] ?? lang;
+  return codeToHtml(code, {
     lang: shikiLang,
     themes: {
       light: "github-light-high-contrast",
@@ -60,6 +60,19 @@ export async function CodeBlock({
       transformerNotationFocus(),
     ],
   });
+}
+
+export async function CodeBlock({
+  code,
+  lang = "tsx",
+  filename,
+  className,
+}: Props) {
+  const shikiLang = LANG_MAP[lang.toLowerCase()] ?? lang;
+  const langLabel =
+    LANG_LABELS[shikiLang] ?? LANG_LABELS[lang] ?? lang.toUpperCase();
+
+  const html = await highlightCode(code, lang);
 
   const fileDir = filename ? filename.split("/").slice(0, -1).join("/") : null;
   const fileName = filename ? filename.split("/").pop() : null;
@@ -96,19 +109,7 @@ export async function CodeBlock({
 
       <ExpandableCode>
         <div
-          className={cn(
-            "relative",
-            "px-0 py-4 text-[13px] leading-relaxed",
-            "[&_pre]:!bg-transparent [&_pre]:!p-0",
-            "[&_code]:font-mono [&_code]:text-[13px]",
-            "[&_.shiki]:bg-transparent",
-            "[&_.line]:px-5",
-            "[&_.highlighted]:bg-foreground/[0.07] [&_.highlighted]:border-l-2 [&_.highlighted]:border-blue-500 [&_.highlighted]:!pl-[18px]",
-            "[&_.diff.add]:bg-green-500/10 [&_.diff.add]:border-l-2 [&_.diff.add]:border-green-500 [&_.diff.add]:!pl-[18px]",
-            "[&_.diff.remove]:bg-red-500/10 [&_.diff.remove]:border-l-2 [&_.diff.remove]:border-red-500 [&_.diff.remove]:!pl-[18px]",
-            "[&_.focused]:opacity-100 [&_pre:has(.focused)_.line:not(.focused)]:opacity-30",
-            "[&_pre:has(.focused)_.line:not(.focused)]:transition-opacity",
-          )}
+          className={CODE_HTML_CLASS}
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </ExpandableCode>

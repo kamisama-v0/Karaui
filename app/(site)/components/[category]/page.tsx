@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { findCategory, registry } from "@/lib/registry";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import {
+  findCategory,
+  installSlugFor,
+  registry,
+  type CategoryEntry,
+} from "@/lib/registry";
+import { BlockViewer } from "@/components/app/docs/block-viewer";
 import { ComponentCard } from "@/components/app/docs/component-card";
+import { NewBadge } from "@/components/app/docs/new-badge";
+import { previews } from "@/components/previews";
 import { JsonLd } from "@/components/app/analytics/json-ld";
 import { isComponentNew } from "@/lib/component-status";
 import { breadcrumbJsonLd, categoryJsonLd } from "@/lib/seo";
+import { VIEWER_MAX_WIDTH } from "@/lib/preview-frame";
+import { cn } from "@/lib/utils";
 
 const categoryContent = {
   motion: {
@@ -200,7 +212,9 @@ export default async function CategoryPage({
         {content.supportingText}
       </p>
 
-      {agentGroups.length ? (
+      {cat.slug === "blocks" ? (
+        <BlocksGallery cat={cat} newSlugs={new Set(newComponents.map((c) => c.slug))} />
+      ) : agentGroups.length ? (
         <>
           <nav
             aria-label="Agent component groups"
@@ -288,6 +302,118 @@ export default async function CategoryPage({
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+type GalleryItem = {
+  id: string;
+  name: string;
+  href: string;
+  codeHref: string;
+  description: string;
+  previewKey: string;
+  installSlug: string | null;
+  isNew: boolean;
+  launchedAt?: string;
+  width?: "default" | "wide";
+};
+
+/**
+ * Blocks listed like ui.shadcn.com/blocks: every block (and block variant)
+ * in its own viewer, stacked. Iframes mount only as they near the viewport,
+ * and Code links to the block's page, where its source is prerendered.
+ */
+function BlocksGallery({
+  cat,
+  newSlugs,
+}: {
+  cat: CategoryEntry;
+  newSlugs: Set<string>;
+}) {
+  const ordered = [
+    ...cat.components.filter((comp) => newSlugs.has(comp.slug)),
+    ...cat.components.filter((comp) => !newSlugs.has(comp.slug)),
+  ];
+  const items: GalleryItem[] = ordered.flatMap((comp) => {
+    const page = `/components/${cat.slug}/${comp.slug}`;
+    if (comp.examples?.length) {
+      return comp.examples.map((example) => ({
+        id: `${comp.slug}-${example.slug}`,
+        name: `${comp.name} · ${example.name}`,
+        href: `${page}#${example.slug}`,
+        codeHref: `${page}#${example.slug}-code`,
+        description: example.description ?? comp.description,
+        previewKey: example.previewKey,
+        installSlug: installSlugFor(comp, example),
+        isNew: example.badge === "new" || newSlugs.has(comp.slug),
+        launchedAt: example.launchedAt ?? comp.launchedAt,
+        width: comp.previewWidth,
+      }));
+    }
+    return [
+      {
+        id: comp.slug,
+        name: comp.name,
+        href: page,
+        codeHref: `${page}#code`,
+        description: comp.description,
+        previewKey: `${cat.slug}/${comp.slug}`,
+        installSlug: installSlugFor(comp),
+        isNew: newSlugs.has(comp.slug),
+        launchedAt: comp.launchedAt,
+        width: comp.previewWidth,
+      },
+    ];
+  });
+
+  return (
+    <div className="mt-12 flex flex-col">
+      {items
+        .filter((item) => previews[item.previewKey])
+        .map((item, index) => (
+          <section
+            key={item.id}
+            id={item.id}
+            aria-labelledby={`${item.id}-title`}
+            className={cn(
+              "scroll-mt-24",
+              VIEWER_MAX_WIDTH[item.width ?? "default"],
+              index > 0 && "mt-10 border-t border-border pt-10",
+            )}
+          >
+            <div className="mb-5">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h2
+                  id={`${item.id}-title`}
+                  className="text-xl font-semibold tracking-tight text-foreground"
+                >
+                  {item.name}
+                </h2>
+                {item.isNew ? <NewBadge launchedAt={item.launchedAt} /> : null}
+                <Link
+                  href={item.href}
+                  className="ml-auto inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground underline-offset-4 outline-none transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  View details
+                  <span className="sr-only"> for {item.name}</span>
+                  <ArrowRight aria-hidden="true" className="size-3.5" />
+                </Link>
+              </div>
+              <p className="mt-1.5 line-clamp-2 max-w-[70ch] text-sm leading-6 text-muted-foreground">
+                {item.description}
+              </p>
+            </div>
+            <BlockViewer
+              previewKey={item.previewKey}
+              name={item.name}
+              kind="block"
+              width={item.width}
+              installSlug={item.installSlug}
+              codeHref={item.codeHref}
+            />
+          </section>
+        ))}
     </div>
   );
 }
