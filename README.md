@@ -36,7 +36,13 @@ Each component includes a live preview, usage example, source code, and a shadcn
 
 ## Install a component
 
-Install commands use the `@karaui` namespace. Add it to your `components.json` once:
+Install commands use the `@karaui` namespace, which is listed in [shadcn's public registry directory](https://ui.shadcn.com/docs/directory), so no setup is needed. Open any component page and copy its install command:
+
+```bash
+npx shadcn@latest add @karaui/animated-toast-stack
+```
+
+On an older shadcn CLI that doesn't read the directory, add the namespace to `components.json` once:
 
 ```json
 {
@@ -44,12 +50,6 @@ Install commands use the `@karaui` namespace. Add it to your `components.json` o
     "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json"
   }
 }
-```
-
-Then open any component page and copy its install command:
-
-```bash
-npx shadcn@latest add @karaui/animated-toast-stack
 ```
 
 Direct URLs also work:

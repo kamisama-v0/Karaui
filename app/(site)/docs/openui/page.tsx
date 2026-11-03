@@ -44,8 +44,8 @@ npm install @openuidev/react-lang @openuidev/lang-core zod
 # Your model SDK (any provider works)
 npm install openai
 
-# Pull the karaUI components you want to expose (shadcn registry;
-# add "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json" to components.json registries first)
+# Pull the karaUI components you want to expose (@karaui is in
+# shadcn's public registry directory, no components.json setup needed)
 npx shadcn@latest add @karaui/button @karaui/animated-badge @karaui/animated-number`;
 
 const DEFINE_SNIPPET = `import { defineComponent, useTriggerAction } from "@openuidev/react-lang";

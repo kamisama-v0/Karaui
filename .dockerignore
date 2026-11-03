@@ -1,0 +1,15 @@
+.git
+.github
+.next
+node_modules
+coverage
+out
+build
+mcp
+tests
+examples
+*.pem
+.env
+.env*.local
+.DS_Store
+npm-debug.log*

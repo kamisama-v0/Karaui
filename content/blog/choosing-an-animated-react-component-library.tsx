@@ -52,7 +52,7 @@ npx shadcn@latest add @karaui/button
 # Motion Primitives ships its own CLI
 npx motion-primitives@latest add text-effect`;
 
-const REGISTRY_SNIPPET = `// components.json: one-time entry so @karaui resolves
+const REGISTRY_SNIPPET = `// components.json: only needed on older shadcn CLIs
 {
   "registries": {
     "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json"
@@ -201,10 +201,11 @@ export default function ChoosingAnimatedLibraryPost() {
       </p>
       <CodeBlock code={INSTALL_SNIPPET} lang="bash" filename="terminal" />
       <p>
-        karaUI uses the same shadcn item format, with one wrinkle: the{" "}
-        <code>@karaui</code> namespace isn&apos;t in shadcn&apos;s public
-        registry directory yet, so you add it to <code>components.json</code>{" "}
-        once. Its registry follows each file&apos;s imports and bundles what it
+        karaUI uses the same shadcn item format, and the <code>@karaui</code>{" "}
+        namespace is listed in shadcn&apos;s public registry directory, so{" "}
+        <code>npx shadcn add @karaui/…</code> works with no setup (older CLIs
+        need the one-time <code>components.json</code> entry below). Its
+        registry follows each file&apos;s imports and bundles what it
         finds, so a component that uses a shared hook or the easing tokens
         brings them along.
       </p>

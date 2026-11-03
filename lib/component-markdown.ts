@@ -96,7 +96,7 @@ export async function buildComponentMarkdown(
     "",
     "## Install",
     "",
-    "One-time setup: add the registry to `components.json`:",
+    "`@karaui` is in shadcn's public registry directory, so the latest CLI resolves it with no setup. On an older CLI, add the registry to `components.json` once:",
     "",
     "```json",
     REGISTRY_CONFIG,

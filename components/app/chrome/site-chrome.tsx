@@ -42,8 +42,9 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
       </main>
       <SiteDock />
       <PreferencesPanel />
-      {process.env.NODE_ENV === "production" && <Analytics />}
-      {process.env.NODE_ENV === "production" && <SpeedInsights />}
+      {/* Vercel's beacons 404 anywhere else, so only mount them on Vercel. */}
+      {process.env.VERCEL === "1" && <Analytics />}
+      {process.env.VERCEL === "1" && <SpeedInsights />}
       <GoogleAnalytics measurementId={googleAnalyticsId} />
     </>
   );

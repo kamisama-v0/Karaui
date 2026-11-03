@@ -402,13 +402,16 @@ export default function BuildAnAiChatInterfacePost() {
       <H2 id="install">Install the pieces</H2>
       <p>
         karaUI ships as source through a shadcn-compatible registry. The{" "}
-        <code>@karaui</code> namespace isn&apos;t in shadcn&apos;s public
-        registry directory yet, so add it to <code>components.json</code>{" "}
-        once:
+        <code>@karaui</code> namespace is listed in shadcn&apos;s public
+        registry directory, so the CLI resolves it with no setup. Add the
+        components this tutorial uses:
+      </p>
+      <CodeBlock code={INSTALL_SNIPPET} lang="bash" filename="terminal" />
+      <p>
+        On an older shadcn CLI that doesn&apos;t read the directory, add the
+        namespace to <code>components.json</code> once first:
       </p>
       <CodeBlock code={REGISTRY_SNIPPET} lang="json" filename="components.json" />
-      <p>Then add the components this tutorial uses:</p>
-      <CodeBlock code={INSTALL_SNIPPET} lang="bash" filename="terminal" />
       <p>
         Each item brings the files it imports, so <code>message</code> pulls
         in <code>message-bubble</code> and the shared motion tokens, and{" "}

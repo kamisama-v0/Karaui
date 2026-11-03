@@ -3,8 +3,8 @@ import { REGISTRY_CONFIG, REGISTRY_NAMESPACE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 /**
- * Collapsible one-time setup: the `components.json` entry that lets the
- * shadcn CLI resolve `@karaui/…` installs.
+ * Collapsible fallback: the `components.json` entry for shadcn CLIs that
+ * don't read the public registry directory, where `@karaui` is listed.
  */
 export function RegistrySetup({ className }: { className?: string }) {
   return (
@@ -21,9 +21,11 @@ export function RegistrySetup({ className }: { className?: string }) {
         >
           ›
         </span>
-        First time? Add{" "}
-        <code className="font-mono text-foreground">{REGISTRY_NAMESPACE}</code>{" "}
-        to your <code className="font-mono text-foreground">components.json</code>
+        <span>
+          <code className="font-mono text-foreground">{REGISTRY_NAMESPACE}</code>{" "}
+          not found? Add it to{" "}
+          <code className="font-mono text-foreground">components.json</code>
+        </span>
       </summary>
       <div className="relative border-t border-border">
         <div className="absolute top-2 right-2">
@@ -36,9 +38,11 @@ export function RegistrySetup({ className }: { className?: string }) {
           {REGISTRY_CONFIG}
         </pre>
         <p className="border-t border-border px-4 py-2.5 text-xs text-muted-foreground">
-          Merge it into the existing file once; every{" "}
+          {REGISTRY_NAMESPACE} is in shadcn&apos;s public registry directory,
+          so the latest CLI needs no setup. On an older CLI, merge this into the
+          existing file once and every{" "}
           <code className="font-mono">{REGISTRY_NAMESPACE}/…</code> install
-          then resolves.
+          resolves.
         </p>
       </div>
     </details>
