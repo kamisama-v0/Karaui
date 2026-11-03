@@ -378,3 +378,15 @@
         color: var(--shiki-dark);
     }
 }
+
+/* Block viewer stage: a quiet dot grid in theme tokens, behind every framed
+ * preview (inside the iframe) and its loading placeholder. */
+@utility preview-stage {
+    background-color: color-mix(in oklab, var(--muted) 35%, var(--background));
+    background-image: radial-gradient(
+        color-mix(in oklab, var(--foreground) 12%, transparent) 1px,
+        transparent 1px
+    );
+    background-size: 16px 16px;
+    background-position: center;
+}

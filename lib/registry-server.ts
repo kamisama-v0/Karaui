@@ -206,10 +206,16 @@ type CollectedSourceGraph = {
   files: SourceFile[];
   external: string[];
   internal: string[];
+  /** Files reached but not read because `stopAt` matched them. */
+  stopped: string[];
 };
 
-async function collectSourceGraph(initialFiles: string[]): Promise<CollectedSourceGraph> {
+async function collectSourceGraph(
+  initialFiles: string[],
+  stopAt?: (path: string) => boolean,
+): Promise<CollectedSourceGraph> {
   const files: SourceFile[] = [];
+  const stopped = new Set<string>();
   const queued = [...initialFiles];
   const seen = new Set<string>();
   const external = new Set<string>();
@@ -238,7 +244,9 @@ async function collectSourceGraph(initialFiles: string[]): Promise<CollectedSour
       if (!resolved) {
         throw new Error(`Cannot resolve internal import "${spec}" from ${rel}`);
       }
-      if (!seen.has(resolved.path)) queued.push(resolved.path);
+      if (seen.has(resolved.path)) continue;
+      if (stopAt?.(resolved.path)) stopped.add(resolved.path);
+      else queued.push(resolved.path);
     }
   }
 
@@ -246,6 +254,90 @@ async function collectSourceGraph(initialFiles: string[]): Promise<CollectedSour
     files,
     external: Array.from(external).sort(),
     internal: Array.from(internal).sort(),
+    stopped: Array.from(stopped),
+  };
+}
+
+export type ViewerSource = {
+  /** Usage composition first, then the files the install brings, in import order. */
+  files: SourceFile[];
+  /** Other karaUI components the install also brings (shadcn's registryDependencies). */
+  dependencies: { name: string; href: string }[];
+};
+
+type FileOwner = { key: string; name: string; href: string };
+
+/** Which registry component owns each library file (its file, extra files and variant files). */
+function fileOwners() {
+  const owners = new Map<string, FileOwner[]>();
+  for (const comp of allComponents()) {
+    const owner: FileOwner = {
+      key: `${comp.category.slug}/${comp.slug}`,
+      name: comp.name,
+      href: `/components/${comp.category.slug}/${comp.slug}`,
+    };
+    const paths = new Set([
+      comp.file,
+      ...(comp.extraFiles ?? []),
+      ...(comp.examples ?? []).map((example) => example.file),
+    ]);
+    for (const path of paths) owners.set(path, [...(owners.get(path) ?? []), owner]);
+  }
+  return owners;
+}
+
+/**
+ * Source for the block viewer's Code view: the usage composition plus every
+ * file the install brings that belongs to this component (its own files and
+ * shared lib/hook helpers). Files owned by another registry component are not
+ * expanded; they are listed as dependencies linking to their own pages, the
+ * way ui.shadcn.com lists registryDependencies, which keeps pages light.
+ */
+export async function buildViewerSource({
+  categorySlug,
+  pageSlug,
+  entryFiles,
+  usageFile,
+}: {
+  categorySlug: string;
+  pageSlug: string;
+  entryFiles: string[];
+  usageFile: string;
+}): Promise<ViewerSource> {
+  const owners = fileOwners();
+  const self = `${categorySlug}/${pageSlug}`;
+  const foreign = (path: string) => {
+    const list = owners.get(path);
+    return Boolean(list && !list.some((owner) => owner.key === self));
+  };
+  const graph = await collectSourceGraph(entryFiles, foreign);
+  const pageUrl = pageUrlFor(categorySlug, pageSlug);
+  const entrySet = new Set(entryFiles);
+
+  const files: SourceFile[] = [];
+  if (!entrySet.has(usageFile)) {
+    files.push({ path: usageFile, content: await readSourceFile(usageFile) });
+  }
+  for (const file of graph.files) {
+    files.push({
+      path: file.path,
+      content: entrySet.has(file.path)
+        ? withSignature(file.content, file.path, pageUrl)
+        : file.content,
+    });
+  }
+
+  const dependencies = new Map<string, { name: string; href: string }>();
+  for (const path of graph.stopped) {
+    const owner = owners.get(path)?.[0];
+    if (owner && !dependencies.has(owner.key)) {
+      dependencies.set(owner.key, { name: owner.name, href: owner.href });
+    }
+  }
+
+  return {
+    files,
+    dependencies: [...dependencies.values()].sort((a, b) => a.name.localeCompare(b.name)),
   };
 }
 

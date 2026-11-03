@@ -3,31 +3,27 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import {
+  entryFilesFor,
   findCategory,
   findComponent,
+  installSlugFor,
   registry,
+  type ComponentEntry,
   type ComponentExample,
 } from "@/lib/registry";
-import { CodeBlock } from "@/components/app/docs/code-block";
+import { BlockViewer } from "@/components/app/docs/block-viewer";
 import { InstallBlock } from "@/components/app/docs/install-block";
 import { RegistrySetup } from "@/components/app/docs/registry-setup";
 import { KeepInMind } from "@/components/app/docs/keep-in-mind";
 import { PageNav, type PageNavItem } from "@/components/app/docs/page-nav";
 import { PropsTable } from "@/components/app/docs/props-table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/motion/tabs";
 import { NewBadge } from "@/components/app/docs/new-badge";
 import { ComponentCard } from "@/components/app/docs/component-card";
 import { ComponentGuide } from "@/components/app/docs/component-guide";
 import { CopyPage } from "@/components/app/docs/copy-page";
 import { JsonLd } from "@/components/app/analytics/json-ld";
 import { getPreview, previews } from "@/components/previews";
-import { pageUrlFor, withSignature } from "@/lib/signature";
-import { readSourceFile } from "@/lib/source-files";
+import { pageUrlFor } from "@/lib/signature";
 import { getComponentProps } from "@/lib/props-extractor";
 import { componentDates } from "@/lib/component-dates";
 import {
@@ -121,10 +117,6 @@ export async function generateMetadata({
         : {}),
     },
   };
-}
-
-async function loadSource(file: string) {
-  return readSourceFile(file);
 }
 
 export default async function ComponentPage({
@@ -259,7 +251,7 @@ export default async function ComponentPage({
               <ExampleBlock
                 key={ex.slug}
                 category={cat.slug}
-                pageSlug={comp.slug}
+                comp={comp}
                 example={ex}
                 showApiReference={shouldShowExampleApi(index)}
                 // The one-time registry setup shows under the first install
@@ -272,12 +264,7 @@ export default async function ComponentPage({
             ))}
           </div>
         ) : (
-          <DefaultTabs
-            category={category}
-            slug={slug}
-            file={comp.file}
-            usageFile={comp.usageFile}
-          />
+          <DefaultPreview category={cat.slug} comp={comp} />
         )}
 
         {!hasVariantInstallCommands ? (
@@ -372,25 +359,20 @@ export default async function ComponentPage({
   );
 }
 
-async function ExampleBlock({
+function ExampleBlock({
   category,
-  pageSlug,
+  comp,
   example,
   showApiReference,
   showRegistrySetup,
 }: {
   category: string;
-  pageSlug: string;
+  comp: ComponentEntry;
   example: ComponentExample;
   showApiReference: boolean;
   showRegistrySetup: boolean;
 }) {
-  const Preview = previews[example.previewKey];
-  const usageFile = example.usageFile ?? example.previewFile;
-  const [source, usage] = await Promise.all([
-    loadSource(example.file),
-    loadSource(usageFile),
-  ]);
+  const hasPreview = Boolean(previews[example.previewKey]);
   const installSlug = example.installSlug ?? null;
   const propsDocs = showApiReference ? getComponentProps(example.file) : [];
 
@@ -415,31 +397,24 @@ async function ExampleBlock({
         </p>
       ) : null}
       <div id={`${example.slug}-preview`} className="scroll-mt-24">
-        <Tabs defaultValue="preview" variant="pill">
-          <TabsList>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="usage">Usage</TabsTrigger>
-            <TabsTrigger value="source">Code</TabsTrigger>
-          </TabsList>
-          <TabsContent value="preview" className="mt-4">
-            <div className="flex min-h-[260px] items-center justify-center py-10">
-              {Preview ? <Preview /> : null}
-            </div>
-          </TabsContent>
-          <TabsContent value="usage" className="mt-4">
-            <CodeBlock code={usage} filename={usageFile} />
-          </TabsContent>
-          <TabsContent value="source" className="mt-4">
-            <CodeBlock
-              code={withSignature(
-                source,
-                example.file,
-                pageUrlFor(category, pageSlug),
-              )}
-              filename={example.file}
-            />
-          </TabsContent>
-        </Tabs>
+        {hasPreview ? (
+          <BlockViewer
+            previewKey={example.previewKey}
+            name={`${comp.name} ${example.name}`}
+            kind={category === "blocks" ? "block" : "primitive"}
+            width={comp.previewWidth}
+            installSlug={installSlugFor(comp, example)}
+            codeAnchor={`${example.slug}-code`}
+            source={{
+              categorySlug: category,
+              pageSlug: comp.slug,
+              entryFiles: entryFilesFor(comp, example),
+              usageFile: example.usageFile ?? example.previewFile,
+            }}
+          />
+        ) : (
+          <div className="flex min-h-[260px] items-center justify-center py-10" />
+        )}
       </div>
       {installSlug ? (
         <div
@@ -470,49 +445,37 @@ async function ExampleBlock({
   );
 }
 
-async function DefaultTabs({
+function DefaultPreview({
   category,
-  slug,
-  file,
-  usageFile,
+  comp,
 }: {
   category: string;
-  slug: string;
-  file: string;
-  usageFile?: string;
+  comp: ComponentEntry;
 }) {
-  const Preview = getPreview(category, slug);
-  const previewFile = `components/previews/${category}/${slug}.preview.tsx`;
-  const resolvedUsageFile = usageFile ?? previewFile;
-  const [source, usage] = await Promise.all([
-    loadSource(file),
-    loadSource(resolvedUsageFile),
-  ]);
+  const hasPreview = Boolean(getPreview(category, comp.slug));
+  const previewFile = `components/previews/${category}/${comp.slug}.preview.tsx`;
 
   return (
     <section id="preview" className="mt-8 scroll-mt-24">
       <h2 className="sr-only">Preview</h2>
-      <Tabs defaultValue="preview" variant="pill">
-        <TabsList>
-          <TabsTrigger value="preview">Preview</TabsTrigger>
-          <TabsTrigger value="usage">Usage</TabsTrigger>
-          <TabsTrigger value="source">Code</TabsTrigger>
-        </TabsList>
-        <TabsContent value="preview" className="mt-4">
-          <div className="flex min-h-[320px] items-center justify-center py-10">
-            {Preview ? <Preview /> : null}
-          </div>
-        </TabsContent>
-        <TabsContent value="usage" className="mt-4">
-          <CodeBlock code={usage} filename={resolvedUsageFile} />
-        </TabsContent>
-        <TabsContent value="source" className="mt-4">
-          <CodeBlock
-            code={withSignature(source, file, pageUrlFor(category, slug))}
-            filename={file}
-          />
-        </TabsContent>
-      </Tabs>
+      {hasPreview ? (
+        <BlockViewer
+          previewKey={`${category}/${comp.slug}`}
+          name={comp.name}
+          kind={category === "blocks" ? "block" : "primitive"}
+          width={comp.previewWidth}
+          installSlug={installSlugFor(comp)}
+          codeAnchor="code"
+          source={{
+            categorySlug: category,
+            pageSlug: comp.slug,
+            entryFiles: entryFilesFor(comp),
+            usageFile: comp.usageFile ?? previewFile,
+          }}
+        />
+      ) : (
+        <div className="flex min-h-[320px] items-center justify-center py-10" />
+      )}
     </section>
   );
 }
