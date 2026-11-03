@@ -57,27 +57,27 @@ type Recipe = {
 const decisions = [
   {
     number: "01",
-    title: "Check frequency",
-    body: "Repeated actions should feel nearly instant. Save expressive motion for moments users see occasionally.",
-    note: "100× a day: no choreography. Rare moments: more delight is allowed.",
+    title: "How often will people see it?",
+    body: "Something clicked dozens of times per session has to respond at once. Keep the flourish for screens that come up once in a while, like onboarding or an empty state.",
+    note: "A toolbar button gets a quick dip. A first-run welcome can afford a longer entrance.",
   },
   {
     number: "02",
-    title: "Name the purpose",
-    body: "Motion should explain space, confirm input, show state, or soften a change. Decoration alone is not enough.",
-    note: "If you cannot explain why it moves, remove the movement.",
+    title: "What job does it do?",
+    body: "Good reasons to move: showing where a panel came from, acknowledging a tap, signalling a new state, or easing a jump in content. Looking nice is not on the list.",
+    note: "No job, no animation. Delete it and check whether anyone misses it.",
   },
   {
     number: "03",
-    title: "Choose the physics",
-    body: "Use ease-out for entrances, ease-in-out for movement, linear for progress, and springs for gestures.",
-    note: "The curve should match what the object is doing, not personal taste.",
+    title: "Which curve fits the action?",
+    body: "Things arriving get ease-out. Things travelling across the screen get ease-in-out. Progress bars run linear. Anything the pointer drags or flicks gets a spring.",
+    note: "Pick the curve from what the element is doing; habit is a poor guide.",
   },
   {
     number: "04",
-    title: "Design the fallback",
-    body: "Reduced motion keeps useful opacity and color feedback while removing travel, scale, and parallax.",
-    note: "Accessibility is a motion state, not an afterthought.",
+    title: "What happens with reduced motion?",
+    body: "When the OS asks for less motion, fades and color changes can stay. Slides, zooms and parallax should go.",
+    note: "Plan this variant up front, alongside the full version.",
   },
 ] as const;
 
@@ -85,27 +85,27 @@ const timings = [
   {
     use: "Press feedback",
     range: "100–160ms",
-    feel: "Immediate and physical",
+    feel: "Felt under the finger",
   },
   {
     use: "Tooltip / popover",
     range: "125–200ms",
-    feel: "Quick, origin-aware",
+    feel: "Grows out of its anchor",
   },
   {
     use: "Dropdown / select",
     range: "150–250ms",
-    feel: "Responsive, no waiting",
+    feel: "Open before the eye arrives",
   },
   {
     use: "Modal / drawer",
     range: "200–500ms",
-    feel: "Enough time to explain space",
+    feel: "Long enough to show where it came from",
   },
   {
     use: "Marketing demo",
     range: "Flexible",
-    feel: "Clarity matters more than speed",
+    feel: "Readable first, quick second",
   },
 ] as const;
 
@@ -114,9 +114,9 @@ const recipes: Recipe[] = [
     title: "Press feedback",
     eyebrow: "Feedback",
     description:
-      "A press should acknowledge input before the action finishes. Keep the scale small and the response immediate.",
-    purpose: "Confirms that the interface heard the user.",
-    avoid: "Large scale changes, slow rebounds, or a spring on every child.",
+      "Shrink the control slightly the moment it is pressed, so the user knows the tap landed even if the work behind it takes a while.",
+    purpose: "Tells the user their tap registered.",
+    avoid: "Deep shrinks, sluggish rebounds, and nested children that each bounce on their own.",
     icon: MousePointer2,
     demo: "press",
     code: `import { motion, useReducedMotion } from "motion/react";
@@ -135,9 +135,9 @@ const reduce = useReducedMotion();
     title: "Semantic icon motion",
     eyebrow: "Meaning",
     description:
-      "Let the icon imitate its real action. A bell swings from its hinge; a download arrow drops toward its tray.",
-    purpose: "Reinforces what the action does without adding another label.",
-    avoid: "The same generic bounce on every icon, or motion on touch hover.",
+      "Move an icon the way its real-world object would: a bell rocks from the top, a download arrow dips toward the tray below it.",
+    purpose: "Hints at the action without needing extra text.",
+    avoid: "One stock wiggle reused for every icon, or hover motion firing on touch screens.",
     icon: Bell,
     demo: "icon",
     code: `const reduce = useReducedMotion();
@@ -157,9 +157,9 @@ const canHover = useHoverCapable();
     title: "Content reveal",
     eyebrow: "Entrance",
     description:
-      "Reveal one meaningful surface with a short lift and restrained blur. The motion should finish before it becomes the focus.",
-    purpose: "Prevents new content from appearing as a jarring visual cut.",
-    avoid: "Half-second UI entrances or a long stagger across every small child.",
+      "Bring in the one surface that matters with a small upward drift and a light blur, and let it settle before the user starts reading it.",
+    purpose: "Stops new content from popping in as a hard cut.",
+    avoid: "Entrances that run for half a second, or staggering every tiny child one by one.",
     icon: Sparkles,
     demo: "reveal",
     code: `const reduce = useReducedMotion();
@@ -182,9 +182,9 @@ const canHover = useHoverCapable();
     title: "Layout continuity",
     eyebrow: "Movement",
     description:
-      "Keep the same surface visible while its footprint changes. Move the shape first, then introduce its label.",
-    purpose: "Preserves object identity while a compact control expands.",
-    avoid: "Direct width tweens or text appearing before the surface makes room.",
+      "When a compact control grows, keep the original shape on screen and resize it; only once there is room should the label fade in.",
+    purpose: "The user can see it is still the same button, just bigger.",
+    avoid: "Animating width directly, or showing text before the container has grown to fit it.",
     icon: PanelTopOpen,
     demo: "layout",
     code: `<motion.div layout transition={CONTINUITY_SPRING}>
@@ -214,9 +214,9 @@ const canHover = useHoverCapable();
     title: "Content swap",
     eyebrow: "State change",
     description:
-      "For small view changes, let the old content leave faster than the new content arrives. Keep travel to a few pixels.",
-    purpose: "Clarifies that content changed while the surrounding context stayed put.",
-    avoid: "Large page-like transitions for tabs, filters, or frequently changed views.",
+      "Switching tabs or filters? Clear the old view quickly, bring the new one in a touch slower, and move each only a few pixels.",
+    purpose: "Makes clear the content changed while the frame around it did not.",
+    avoid: "Full page-style transitions on views people flip between all the time.",
     icon: Rows3,
     demo: "swap",
     code: `<AnimatePresence mode="wait" initial={false}>
@@ -240,8 +240,8 @@ export function MotionPatterns() {
     <div className="mt-12 space-y-20">
       <GuideSection
         eyebrow="Decision framework"
-        title="Four questions before motion"
-        description="The best animation decision is often made before touching a duration or spring value."
+        title="Answer these before you animate"
+        description="Most motion problems are settled by a few questions asked up front, well before anyone tweaks a duration."
       >
         <div className="grid gap-px overflow-hidden rounded-3xl border border-border bg-border sm:grid-cols-2">
           {decisions.map((decision) => (
@@ -268,16 +268,16 @@ export function MotionPatterns() {
 
       <GuideSection
         eyebrow="Motion tokens"
-        title="Use one language everywhere"
-        description="karaUI keeps deliberate motion in shared tokens. Choose by purpose so components feel related without moving identically."
+        title="Shared tokens, not one-off curves"
+        description="Every karaUI component pulls its easing and springs from lib/ease.ts. Pick a token by what the element is doing; the library then feels consistent even though each piece moves differently."
       >
         <EasingLab />
       </GuideSection>
 
       <GuideSection
         eyebrow="Timing"
-        title="Fast enough to feel immediate"
-        description="Duration depends on size, distance, and frequency. These ranges are starting points, not targets to hit mechanically."
+        title="How long should it take?"
+        description="Bigger surfaces and longer distances need more time; frequent actions need less. Treat the ranges below as a first guess and adjust by eye."
       >
         <div className="overflow-hidden rounded-3xl border border-border">
           <div className="hidden grid-cols-[1fr_8rem_1.4fr] gap-4 border-b border-border bg-card px-5 py-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:grid">
@@ -305,16 +305,17 @@ export function MotionPatterns() {
         <div className="mt-4 flex gap-3 rounded-2xl bg-card p-4">
           <Zap className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" />
           <p className="text-sm leading-6 text-muted-foreground">
-            Under 300ms is the default for interface motion. Longer motion belongs
-            to explanatory demos, deliberate gestures, and large spatial changes.
+            Most UI motion in karaUI finishes inside 300ms. Go longer only for a demo
+            that teaches something, a gesture the user is driving, or a big change
+            in layout.
           </p>
         </div>
       </GuideSection>
 
       <GuideSection
         eyebrow="Recipes"
-        title="Patterns you can copy"
-        description="Each recipe connects a purpose to a production token, a reduced-motion state, and a concrete failure mode."
+        title="Five recipes from the library"
+        description="Each card shows a live demo, the reason the motion exists, a common way to get it wrong, and the code with its reduced-motion branch."
       >
         <div className="grid gap-4 lg:grid-cols-2">
           {recipes.map((recipe) => (
@@ -325,18 +326,18 @@ export function MotionPatterns() {
 
       <GuideSection
         eyebrow="Accessibility"
-        title="Reduced motion is a designed state"
-        description="Do not remove every transition. Keep feedback that helps comprehension and remove movement that can cause discomfort."
+        title="Building the reduced-motion version"
+        description="Turning everything off is the wrong fix. Keep the cues that help people follow along and drop the movement that can make them feel unwell."
       >
         <div className="grid overflow-hidden rounded-3xl border border-border lg:grid-cols-[0.9fr_1.1fr]">
           <div className="border-b border-border bg-card p-6 lg:border-b-0 lg:border-r">
             <Accessibility className="size-5 text-foreground" aria-hidden="true" />
             <h3 className="mt-8 text-lg font-semibold text-foreground">
-              Keep meaning. Remove travel.
+              Fade and recolor instead of moving.
             </h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Preserve opacity, color, and instant state changes. Drop parallax,
-              large transforms, repeated scale, and spring overshoot.
+              Opacity, color and instant state swaps stay. Parallax, big translates,
+              repeated scaling and springy overshoot are removed.
             </p>
           </div>
           <CodeRecipe
@@ -396,7 +397,7 @@ function EasingLab() {
         <div>
           <p className="text-sm font-medium text-foreground">Compare the curves</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Same distance and duration. Different jobs.
+            Both dots travel the same track in the same time.
           </p>
         </div>
         <ReplayButton
@@ -409,7 +410,7 @@ function EasingLab() {
           key={`out-${replay}`}
           label="EASE_OUT"
           value="[0.16, 1, 0.3, 1]"
-          description="Entrances and exits respond immediately, then settle quietly."
+          description="Starts fast and coasts to a stop, which suits elements arriving or leaving."
           ease={EASE_OUT}
           reduce={Boolean(reduce)}
         />
@@ -417,7 +418,7 @@ function EasingLab() {
           key={`in-out-${replay}`}
           label="EASE_IN_OUT"
           value="[0.77, 0, 0.175, 1]"
-          description="Objects already on screen accelerate and decelerate naturally."
+          description="Speeds up, then slows down, which suits an element moving between two spots."
           ease={EASE_IN_OUT}
           reduce={Boolean(reduce)}
         />
@@ -426,12 +427,12 @@ function EasingLab() {
         <TokenNote
           icon={MousePointer2}
           title="SPRING_PRESS"
-          body="Fast, weighted feedback for buttons and other pressable surfaces."
+          body="Short and firm; used on buttons and anything else you press."
         />
         <TokenNote
           icon={CircleGauge}
           title="SPRING_LAYOUT"
-          body="Shared surfaces and indicators that need continuous spatial movement."
+          body="For pills, indicators and shared surfaces that glide between positions."
         />
       </div>
     </div>

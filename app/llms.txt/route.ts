@@ -24,11 +24,14 @@ export async function GET() {
   lines.push("");
   lines.push("## Usage for agents");
   lines.push("");
-  lines.push("1. Fetch the index to discover components.");
-  lines.push("2. Fetch a component detail JSON for files, deps and source.");
-  lines.push("3. Drop files into the user's project at the listed paths.");
-  lines.push("4. Install external `dependencies` listed on the entry.");
-  lines.push("5. Internal helpers (e.g. `@/lib/utils`) ship in the `files` array as `type: util`.");
+  lines.push("Shortest route: `npx shadcn@latest add @karaui/<slug>` (the namespace is in shadcn's registry directory).");
+  lines.push("Without the CLI:");
+  lines.push("");
+  lines.push("1. Read the registry index and pick a slug.");
+  lines.push("2. Request that slug's detail JSON; it carries every file with its source.");
+  lines.push("3. Write each file to its `path` inside the project.");
+  lines.push("4. Add the npm packages named in `dependencies`.");
+  lines.push("5. Shared helpers such as `@/lib/utils` are already in `files` (`type: util`), so no further lookups are needed.");
   lines.push("");
   return new Response(lines.join("\n"), {
     headers: {

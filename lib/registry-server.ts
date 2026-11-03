@@ -453,7 +453,8 @@ export async function buildShadcnRegistry(): Promise<ShadcnRegistry> {
 export async function buildIndex() {
   return {
     name: "karaUI",
-    description: "Animated components for React and Next.js.",
+    description:
+      "React components for AI agent interfaces, app screens and landing pages, animated with Motion, themed by shadcn tokens and 10 design styles.",
     site: SITE_URL,
     endpoints: {
       llms: `${SITE_URL}/llms.txt`,

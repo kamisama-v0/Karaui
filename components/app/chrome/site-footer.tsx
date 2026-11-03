@@ -20,8 +20,8 @@ export function SiteFooter() {
           <div className="col-span-2 md:col-span-1">
             <p className="font-display text-lg font-medium text-foreground">karaUI</p>
             <p className="mt-2 max-w-[220px] text-sm leading-6 text-muted-foreground">
-              Animated components for React and Next.js. Copy-paste via the
-              shadcn registry.
+              React components for AI agent apps, product screens and landing
+              pages. Install any of them from the @karaui shadcn registry.
             </p>
             <p className="mt-5 text-xs text-muted-foreground">
               Created by{" "}

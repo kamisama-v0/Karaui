@@ -167,7 +167,7 @@ export class KaraUiMcp extends McpAgent<Env, Record<string, never>, Record<strin
 
 const LANDING = `karaUI MCP server
 
-Animated components for React and Next.js.
+React UI for AI agents, apps and landing pages.
 
 Connect your MCP client to:
   https://mcp-karaui.kamisama-v0.my.id/mcp   (Streamable HTTP, recommended)

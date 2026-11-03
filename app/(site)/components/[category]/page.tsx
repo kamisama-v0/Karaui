@@ -20,71 +20,104 @@ import { cn } from "@/lib/utils";
 
 const categoryContent = {
   motion: {
-    title: "Animated React Components — Copy-Paste Motion UI",
-    heading: "Animated React components",
+    title: "React UI Primitives with Motion: Forms, Menus, Charts",
+    heading: "Motion primitives for React",
     description:
-      "Explore free, open-source animated React components built with Motion and Tailwind CSS. Copy the TypeScript source into your app and customize every interaction.",
+      "Inputs, menus, date pickers, data tables, SVG charts, dialogs and more: the low-level React pieces of karaUI, animated with Motion and installed as editable source.",
     supportingText:
-      "Browse motion components for navigation, forms, text, feedback, overlays, and scroll experiences. Each one includes a live preview, install command, source code, API reference, and reduced-motion support.",
-    allLabel: "All animated components",
+      "Open any of them to try a live demo, copy the @karaui install command, read the full TypeScript source and check the props. Small controls such as buttons, tabs and switches get a 44px hit area on touch screens, and movement switches off when the OS asks for reduced motion.",
+    allLabel: "Every primitive",
   },
   blocks: {
-    title: "Animated React UI Blocks — Product-Ready Motion",
-    heading: "Animated React UI blocks",
+    title: "React App and Landing Blocks: Inbox, Checkout, Dashboard",
+    heading: "App screens and landing sections",
     description:
-      "Explore product-ready animated React blocks built with Motion and Tailwind CSS. Copy complete interactions into your app and adapt the source to your product.",
+      "Whole screens and page sections assembled from karaUI primitives: an inbox, checkout, settings page, dashboard shell, invoice, status page, pricing table, hero and footer.",
     supportingText:
-      "Browse composed interfaces for uploads, navigation, trading, scheduling, notifications, and more. Every block includes a live preview, install command, TypeScript source, and implementation details.",
-    allLabel: "All animated blocks",
+      "Each block is a working layout you connect to your own data rather than a static mockup. Most of them lay out with container queries, so one block fits a narrow side panel or a full page. Every block page has a live preview and the TypeScript source.",
+    allLabel: "Every block",
   },
   agents: {
-    title: "AI Agent Components — Animated React AI Interfaces",
-    heading: "Animated AI agent components",
+    title: "AI Chat and Agent UI Components for React",
+    heading: "Components for AI chat and agent apps",
     description:
-      "Build clear, responsive AI experiences with open-source React components for agent reasoning, progress, tool activity, and conversation states.",
+      "Prompt input, streamed answers, tool calls, approvals, a model picker, a context meter, response branches and a voice orb: React parts for chat and coding-agent interfaces.",
     supportingText:
-      "Each agent component is designed for long-running, interruptible AI work and includes a live preview, shadcn install command, TypeScript source, API reference, and reduced-motion support.",
-    allLabel: "All agent components",
+      "They are built for runs that stream, take a while and may be stopped halfway: output grows without throwing the reader around, finished steps fold away, and a person can approve or reject before a tool runs. Each one comes with a live demo, an @karaui install command and its source.",
+    allLabel: "Every agent component",
   },
 } as const;
 
 const AGENT_CATEGORY_GROUPS = [
   {
     id: "conversation",
-    title: "Conversation components",
+    title: "Conversation",
     description:
-      "Compose prompts, arrange sender-aware messages, shape conversational surfaces, and keep streamed turns stable while the reader moves through the transcript.",
-    slugs: ["prompt-input", "message", "message-bubble", "message-scroller"],
+      "The composer, the messages and the controls under each reply: type a prompt or start from a suggestion, lay out each turn, copy or rate an answer, and step between regenerated versions.",
+    slugs: [
+      "prompt-input",
+      "prompt-suggestions",
+      "message",
+      "message-bubble",
+      "message-actions",
+      "branch-navigator",
+      "message-scroller",
+    ],
   },
   {
     id: "responses",
-    title: "Response and evidence components",
+    title: "Answers and sources",
     description:
-      "Render rich answers as they arrive, reveal completion actions at the right time, and connect generated claims to inspectable sources.",
+      "Show a reply while it is still being written, generate an image in place, and link each claim to the page it came from.",
     slugs: ["streaming-response", "image-generation", "citations"],
   },
   {
     id: "progress",
-    title: "Progress and planning components",
+    title: "Progress and plans",
     description:
-      "Communicate unknown waits, durable task plans, and chronological agent activity without inventing precision or exposing an unfiltered trace.",
+      "Let people know the agent is busy, show the task list it is working through, and keep a readable log of what it did, with no made-up percentages.",
     slugs: ["loading-states", "todo-list", "agent-activity"],
   },
   {
     id: "tools",
-    title: "Tool and code components",
+    title: "Tool output and code",
     description:
-      "Present execution outcomes, generated source, and file changes with bounded streaming, stable highlighting, and inspectable completion states.",
+      "Display command output, generated code and file diffs as they stream, with copy buttons, and fold output and diffs away once a step finishes.",
     slugs: ["tool-result", "code-block", "file-diff"],
   },
   {
     id: "human-control",
-    title: "Human-in-the-loop components",
+    title: "Approvals",
     description:
-      "Pause agent work for a scoped permission, clarification, review, or decision, then preserve the resolved outcome in the run history.",
+      "Stop before a risky tool call or put a question to the user, then keep their answer visible in the run history.",
     slugs: ["tool-approval", "approval-card"],
   },
+  {
+    id: "models",
+    title: "Model and context",
+    description:
+      "Let users choose which model handles the run and see how much of its context window is already used, with an optional compact action.",
+    slugs: ["model-selector", "context-meter"],
+  },
+  {
+    id: "voice",
+    title: "Voice",
+    description:
+      "Record speech and turn it into a prompt, or show an animated orb that reacts to listening, thinking and speaking.",
+    slugs: ["voice-input", "voice-orb"],
+  },
+  {
+    id: "workspace",
+    title: "Workspace and history",
+    description:
+      "The frame around a chat: a sidebar for projects and files, a searchable list of past conversations, a side panel for generated artifacts, and a full chat app that puts them together.",
+    slugs: ["chat-app", "ai-sidebar", "conversation-history", "artifact-panel"],
+  },
 ] as const;
+
+const AGENT_GROUPED_SLUGS = new Set<string>(
+  AGENT_CATEGORY_GROUPS.flatMap((group) => group.slugs),
+);
 
 export function generateStaticParams() {
   return registry.map((c) => ({ category: c.slug }));
@@ -174,15 +207,37 @@ export default async function CategoryPage({
   const components = cat.components.filter(
     (comp) => !isComponentNew(comp, now),
   );
+  // Every agent component must appear on the page: anything not listed in a
+  // group lands in a trailing "More" group instead of silently disappearing.
+  const ungroupedAgents = cat.components.filter(
+    (comp) => !AGENT_GROUPED_SLUGS.has(comp.slug),
+  );
   const agentGroups =
     cat.slug === "agents"
-      ? AGENT_CATEGORY_GROUPS.map((group) => ({
-          ...group,
-          components: group.slugs.flatMap((slug) => {
-            const component = cat.components.find((item) => item.slug === slug);
-            return component ? [component] : [];
-          }),
-        }))
+      ? [
+          ...AGENT_CATEGORY_GROUPS.map((group) => ({
+            id: group.id as string,
+            title: group.title as string,
+            description: group.description as string,
+            components: group.slugs.flatMap((slug) => {
+              const component = cat.components.find(
+                (item) => item.slug === slug,
+              );
+              return component ? [component] : [];
+            }),
+          })),
+          ...(ungroupedAgents.length
+            ? [
+                {
+                  id: "more",
+                  title: "More",
+                  description:
+                    "Agent components that don't fit one of the groups above.",
+                  components: ungroupedAgents,
+                },
+              ]
+            : []),
+        ]
       : [];
 
   return (
@@ -226,7 +281,7 @@ export default async function CategoryPage({
                 href={`#${group.id}`}
                 className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
               >
-                {group.title.replace(" components", "")}
+                {group.title}
               </a>
             ))}
           </nav>

@@ -11,7 +11,7 @@ import {
 import "./globals.css";
 import { ThemeProvider } from "@/components/app/chrome/theme-provider";
 import { PreferencesProvider } from "@/components/app/preferences/preferences-provider";
-import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/seo";
+import { AUTHOR, HOME_TITLE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { accentInitScript, accentStylesheet } from "@/lib/accents";
 import { designStylesStylesheet, styleInitScript } from "@/lib/styles";
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: SITE_NAME,
   title: {
-    default: `${SITE_TITLE} · karaUI`,
+    default: HOME_TITLE,
     template: "%s · karaUI",
   },
   description: SITE_DESCRIPTION,
@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: `${SITE_TITLE} · karaUI`,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     type: "website",
     url: "/",
@@ -98,17 +98,22 @@ export const metadata: Metadata = {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: `${SITE_TITLE} · karaUI`,
+        alt: HOME_TITLE,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_TITLE} · karaUI`,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/api/og"],
   },
   keywords: [
+    "AI agent UI components",
+    "AI chat components for React",
+    "React app blocks",
+    "landing page blocks",
+    "Tailwind design styles",
     "React motion components",
     "best motion components",
     "free motion components",
