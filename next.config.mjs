@@ -84,6 +84,8 @@ const LEGACY_COMPONENT_REDIRECTS = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Self-hosted on the VPS: the Docker image runs `.next/standalone/server.js`.
+  output: "standalone",
   images: {
     remotePatterns: [
       {
