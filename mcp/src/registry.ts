@@ -89,10 +89,13 @@ export type PackageManager = keyof typeof PM_PREFIX;
 export const PACKAGE_MANAGERS = Object.keys(PM_PREFIX) as PackageManager[];
 
 /**
- * components.json entry that makes `@karaui/…` resolve. Required once per
- * project until @karaui is listed in shadcn's public registry directory.
+ * components.json entry that makes `@karaui/…` resolve. @karaui is listed in
+ * shadcn's public registry directory, so current CLIs need no setup; this is
+ * the fallback for older CLIs.
  */
 export const REGISTRY_SETUP = {
+  required: false,
+  note: "@karaui is in shadcn's public registry directory; only older shadcn CLIs need this components.json entry.",
   file: "components.json",
   registries: { "@karaui": "https://karaui.kamisama-v0.my.id/r/{name}.json" },
 };

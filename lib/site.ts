@@ -10,8 +10,9 @@ export const REGISTRY_NAMESPACE = "@karaui";
 export const REGISTRY_URL_TEMPLATE = `${SITE_URL}/r/{name}.json`;
 
 /**
- * One-time `components.json` entry that makes the namespace resolve. Needed
- * until @karaui is listed in shadcn's public registry directory.
+ * `components.json` entry that makes the namespace resolve. @karaui is listed
+ * in shadcn's public registry directory, so current CLIs resolve it without
+ * this; it stays as a fallback for older CLIs and pinned/mirrored setups.
  */
 export const REGISTRY_CONFIG = JSON.stringify(
   { registries: { [REGISTRY_NAMESPACE]: REGISTRY_URL_TEMPLATE } },

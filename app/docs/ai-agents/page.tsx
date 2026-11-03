@@ -93,7 +93,7 @@ for (const file of entry.files) {
 // 4. Install external deps
 await runShell(['bun', 'add', ...entry.dependencies]);`;
 
-const SHADCN_SNIPPET = `# Namespace (after adding "@karaui" to components.json registries)
+const SHADCN_SNIPPET = `# Namespace (listed in shadcn's registry directory, no setup)
 npx shadcn@latest add @karaui/animated-toast-stack
 
 # Direct URL, no namespace needed
