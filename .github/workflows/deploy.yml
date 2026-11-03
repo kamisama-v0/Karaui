@@ -53,6 +53,9 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
+          # One plain manifest per version, so pruning old versions below can
+          # never delete a child of an image that is still tagged.
+          provenance: false
           build-args: |
             NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=${{ vars.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID }}
           tags: |
@@ -81,3 +84,11 @@ jobs:
           echo "$HOST ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMLBYKg0NXmWsoHL7SrX7q9iIaYWAeadnEpWTMjEoNWu" > ~/.ssh/known_hosts
           # The key's authorized_keys entry forces deploy-gate.sh; the tag is all it reads.
           ssh -i ~/.ssh/deploy_key root@"$HOST" "$TAG"
+      # Keep the last 10 images for deploy.sh --rollback; GHCR storage stays small.
+      - name: Prune old images
+        uses: actions/delete-package-versions@v5
+        continue-on-error: true
+        with:
+          package-name: karaui
+          package-type: container
+          min-versions-to-keep: 10
