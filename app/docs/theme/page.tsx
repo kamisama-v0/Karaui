@@ -6,14 +6,14 @@ import { StyleGallery } from "@/components/app/docs/style-gallery";
 import { THEME_CSS } from "@/lib/theme-css";
 
 export const metadata: Metadata = {
-  title: "Theme setup",
+  title: "Theme and design styles",
   description:
-    "One-time theme setup for karaUI components: install the shadcn token layer, or paste the karaUI theme CSS into your globals.css.",
+    "Give karaUI components their colors: run shadcn init or paste theme.css, then pick one of 10 design styles (neobrutalism, swiss, retro…) in light and dark.",
   alternates: { canonical: "/docs/theme" },
   openGraph: {
-    title: "Theme setup · karaUI",
+    title: "Theme and design styles · karaUI",
     description:
-      "One-time theme setup for karaUI components: shadcn tokens or the karaUI theme CSS.",
+      "Wire up the color tokens karaUI reads, then switch between 10 design styles that change palette, radii, shadows and fonts.",
     url: "/docs/theme",
     type: "article",
     siteName: "karaUI",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Theme setup · karaUI",
+    title: "Theme and design styles · karaUI",
     images: ["/api/og"],
   },
 };
@@ -38,38 +38,39 @@ export default function ThemePage() {
         Theme setup
       </h1>
       <p className="mt-3 text-muted-foreground">
-        karaUI components style themselves with shadcn semantic tokens
+        Nothing in karaUI hard-codes a color. Every component reads the same
+        semantic variables shadcn/ui uses
         (<code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">bg-primary</code>,
         {" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">text-muted-foreground</code>,
-        {" "}border, ring). Set those tokens up once and every component works.
-        Two ways:
+        {" "}border, ring), so once your app defines them, any component you add
+        picks them up. Pick whichever route fits your project:
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
-        Option 1 — shadcn init (recommended)
+        Route A — let shadcn write the tokens (recommended)
       </h2>
       <p className="mt-2 text-muted-foreground">
-        If your project uses shadcn, you already have these tokens. Otherwise
-        run init once; it writes the token layer into your CSS.
+        Already on shadcn/ui? Skip this step, the variables are in place. For a
+        fresh project, the init command below adds them to your stylesheet.
       </p>
       <div className="mt-4">
         <CodeBlock code={SHADCN_INIT} lang="bash" filename="terminal" />
       </div>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
-        Option 2 — paste the theme CSS
+        Route B — copy karaUI&apos;s theme.css
       </h2>
       <p className="mt-2 text-muted-foreground">
-        Not using shadcn? Paste this into your{" "}
+        Prefer to skip shadcn entirely? Drop the block below into{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">globals.css</code>{" "}
-        directly below{" "}
+        right after the{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">@import "tailwindcss";</code>.
-        It defines the tokens, motion animations and surface utilities the
-        components use. Requires Tailwind CSS v4.
+        line. Besides the color variables it carries the keyframes and surface
+        helper classes some components rely on. Tailwind CSS v4 is required.
       </p>
       <p className="mt-2 text-sm text-muted-foreground">
-        Also available at{" "}
+        The same file is served at{" "}
         <Link
           href="/theme.css"
           target="_blank"
@@ -92,14 +93,15 @@ export default function ThemePage() {
         Design styles
       </h2>
       <p className="mt-2 text-muted-foreground">
-        A design style re-skins everything at once — palette, corner radii,
-        shadows and type — independently of light and dark mode. Each card
-        below renders in its own style. Switch the whole site with{" "}
+        karaUI ships 10 design styles, the default included. A style swaps
+        the palette, corner radius, shadows and fonts together, and each one
+        has its own light and dark set. Every card below is drawn in the style
+        it names. Try one on this site with{" "}
         <span className="text-foreground">Use this style</span> (or the
-        palette button in the header and dock), or copy a style&apos;s CSS
-        into your own{" "}
+        palette button in the header and dock), or grab its CSS with Copy CSS and
+        paste it into your{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">globals.css</code>{" "}
-        below the theme layer.
+        after the theme variables.
       </p>
       <div className="mt-6">
         <StyleGallery />

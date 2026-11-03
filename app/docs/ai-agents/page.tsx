@@ -4,14 +4,14 @@ import { ArrowUpRight } from "lucide-react";
 import { CodeBlock } from "@/components/app/docs/code-block";
 
 export const metadata: Metadata = {
-  title: "AI Agents",
+  title: "Using karaUI from coding agents",
   description:
-    "Install the karaUI agent skill, connect the MCP server, or use the agent-friendly endpoints (llms.txt, JSON registry, raw source) to consume components programmatically.",
+    "Point Claude Code, Codex, Cursor or Amp at karaUI: add the karaui skill, connect the hosted MCP server, or read llms.txt and the JSON registry yourself.",
   alternates: { canonical: "/docs/ai-agents" },
   openGraph: {
-    title: "AI Agents · karaUI",
+    title: "Using karaUI from coding agents · karaUI",
     description:
-      "Install the karaUI agent skill, connect the MCP server, or use the agent-friendly endpoints (llms.txt, JSON registry, raw source) to consume components programmatically.",
+      "Point Claude Code, Codex, Cursor or Amp at karaUI: add the karaui skill, connect the hosted MCP server, or read llms.txt and the JSON registry yourself.",
     url: "/docs/ai-agents",
     type: "article",
     siteName: "karaUI",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Agents · karaUI",
+    title: "Using karaUI from coding agents · karaUI",
     images: ["/api/og"],
   },
 };
@@ -28,32 +28,32 @@ const ENDPOINTS: { label: string; url: string; desc: string }[] = [
   {
     label: "llms.txt",
     url: "/llms.txt",
-    desc: "Markdown index in llmstxt.org format.",
+    desc: "Plain-text site map for models, following the llmstxt.org layout.",
   },
   {
     label: "Registry index",
     url: "/r",
-    desc: "JSON catalogue of every component.",
+    desc: "Every component and variant as one JSON list.",
   },
   {
     label: "Component detail",
     url: "/r/{slug}",
-    desc: "JSON with files, deps, source.",
+    desc: "One component as JSON: its files, their source and the npm packages it needs.",
   },
   {
     label: "shadcn catalog",
     url: "/registry.json",
-    desc: "Directory-compatible registry catalog.",
+    desc: "The catalog shadcn's registry directory reads.",
   },
   {
     label: "shadcn item",
     url: "/r/{slug}.json",
-    desc: "Install item with inline file content and shadcn semantic color classes.",
+    desc: "What `shadcn add` downloads: file contents inline, styled with shadcn color classes.",
   },
   {
     label: "Raw source",
     url: "/r/{slug}/raw",
-    desc: "Plain text .tsx ready to drop in.",
+    desc: "The component's .tsx as plain text, nothing wrapped around it.",
   },
 ];
 
@@ -79,39 +79,39 @@ const MCP_MANUAL_SNIPPET = `{
   }
 }`;
 
-const FETCH_SNIPPET = `// 1. Discover what exists
+const FETCH_SNIPPET = `// 1. Read the catalog
 const idx = await fetch('https://karaui.kamisama-v0.my.id/r').then((r) => r.json());
 
-// 2. Fetch a component
+// 2. Load one entry by slug
 const entry = await fetch(\`https://karaui.kamisama-v0.my.id/r/\${slug}\`).then((r) => r.json());
 
-// 3. Write files into the user's project
+// 3. Save every bundled file at its path
 for (const file of entry.files) {
   await writeFile(file.path, file.content);
 }
 
-// 4. Install external deps
+// 4. Add the npm packages it lists
 await runShell(['bun', 'add', ...entry.dependencies]);`;
 
 const SHADCN_SNIPPET = `# Namespace (listed in shadcn's registry directory, no setup)
 npx shadcn@latest add @karaui/animated-toast-stack
 
-# Direct URL, no namespace needed
+# Or pass the item's full URL
 npx shadcn@latest add https://karaui.kamisama-v0.my.id/r/animated-toast-stack.json`;
 
 const ENTRY_SHAPE = `{
   "slug": "swap",
   "name": "Multi-chain Swap",
-  "description": "Cross-chain swap widget with chain + token selectors, animated flip and quote.",
-  "category": "motion",
-  "page_url": "https://karaui.kamisama-v0.my.id/components/motion/swap",
+  "description": "...",
+  "category": "blocks",
+  "page_url": "https://karaui.kamisama-v0.my.id/components/blocks/swap",
   "detail_url": "https://karaui.kamisama-v0.my.id/r/swap",
   "raw_url": "https://karaui.kamisama-v0.my.id/r/swap/raw",
   "dependencies": ["motion", "lucide-react", "react"],
   "internal": ["@/lib/utils"],
   "files": [
     { "path": "components/motion/swap.tsx", "type": "component", "content": "..." },
-    { "path": "components/previews/motion/swap.preview.tsx", "type": "preview", "content": "..." },
+    { "path": "components/previews/blocks/swap.preview.tsx", "type": "preview", "content": "..." },
     { "path": "lib/utils.ts", "type": "util", "content": "..." }
   ]
 }`;
@@ -123,27 +123,28 @@ export default function AIAgentsPage() {
         Intro
       </p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-        For AI agents
+        Using karaUI from coding agents
       </h1>
       <p className="mt-3 text-muted-foreground">
-        karaUI exposes a static, agent-friendly surface. Install the karaUI skill,
-        connect the MCP server below, or hit the raw endpoints directly. Coding
-        agents (Claude, Codex, Cursor, Amp) can list components, fetch source
-        with all deps, and drop files into the user&apos;s project.
+        You can ask an assistant like Claude Code, Codex, Cursor or Amp to add a
+        karaUI component for you. There are three ways to wire that up, from
+        least to most hands-on: a skill that tells the agent how to pick and
+        install components, an MCP server it can query, and plain HTTP endpoints
+        that return the catalog and the source.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
         Agent skill
       </h2>
       <p className="mt-2 text-muted-foreground">
-        The skill teaches coding agents to fetch the live registry first, pick
-        the closest{" "}
+        With the skill installed, the agent starts by reading the current
+        registry, matches your request to an{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           items[].name
         </code>{" "}
-        install slug, inspect it with shadcn, then install and compose from
-        the generated source. Use it when you want agents to choose existing
-        karaUI components instead of inventing custom motion widgets.
+        install slug, checks that item through shadcn, and only then installs
+        it and builds on the source it wrote. The point is to stop the agent
+        from hand-rolling an animation that karaUI already has.
       </p>
       <div className="mt-4">
         <CodeBlock code={SKILL_SNIPPET} lang="bash" filename="terminal" />
@@ -153,8 +154,9 @@ export default function AIAgentsPage() {
         MCP server
       </h2>
       <p className="mt-2 text-muted-foreground">
-        The fastest path: connect the karaUI MCP server and your agent can list,
-        search and install components directly. Hosted at{" "}
+        If your client speaks MCP, this is the shortest setup. Once connected,
+        the agent can browse the catalog, search it and get install commands
+        without leaving the chat. The server lives at{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           {MCP_URL}
         </code>
@@ -164,13 +166,13 @@ export default function AIAgentsPage() {
         <CodeBlock code={MCP_CLI_SNIPPET} lang="bash" filename="terminal" />
       </div>
       <p className="mt-4 text-muted-foreground">
-        Any other client: add it manually to your MCP config.
+        For a client not listed above, put this entry in its MCP config file.
       </p>
       <div className="mt-4">
         <CodeBlock code={MCP_MANUAL_SNIPPET} lang="json" filename="mcp.json" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        Tools:{" "}
+        It exposes four tools:{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           list_components
         </code>
@@ -228,8 +230,9 @@ export default function AIAgentsPage() {
         Agent flow
       </h2>
       <p className="mt-2 text-muted-foreground">
-        Four calls, then install. Components are self-contained and own their
-        files.
+        Writing your own integration? The whole loop is a handful of fetches.
+        Each entry already includes every file it imports, so nothing else has
+        to be resolved.
       </p>
       <div className="mt-4">
         <CodeBlock code={FETCH_SNIPPET} lang="ts" filename="agent.ts" />
@@ -239,9 +242,10 @@ export default function AIAgentsPage() {
         shadcn flow
       </h2>
       <p className="mt-2 text-muted-foreground">
-        The shadcn item installs source files and package dependencies.
-        Components use shadcn semantic color utilities directly, so they inherit
-        the target app&apos;s theme without karaUI-specific color variables.
+        Agents that already use the shadcn CLI can install by name. The CLI
+        writes the files and adds the npm packages; since the markup only uses
+        shadcn&apos;s color classes, the result follows the host app&apos;s
+        theme with no extra karaUI variables.
       </p>
       <div className="mt-4">
         <CodeBlock code={SHADCN_SNIPPET} lang="bash" filename="terminal" />
@@ -251,15 +255,15 @@ export default function AIAgentsPage() {
         Entry shape
       </h2>
       <p className="mt-2 text-muted-foreground">
-        Internal helpers (e.g.{" "}
+        Shared helpers such as{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           @/lib/utils
         </code>
-        ) ship inline as{" "}
+        are bundled into the response as{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           type: util
         </code>{" "}
-        so the agent does not have to chase imports.
+        entries, which saves the agent a round of import hunting.
       </p>
       <div className="mt-4">
         <CodeBlock code={ENTRY_SHAPE} lang="json" filename="r/swap.json" />
@@ -269,7 +273,7 @@ export default function AIAgentsPage() {
         Generative UI
       </h2>
       <p className="mt-2 text-muted-foreground">
-        Want the model to compose these components into a live interface? Follow
+        To let a model build screens out of karaUI components at runtime, see
         the{" "}
         <Link
           href="/docs/openui"
@@ -277,8 +281,8 @@ export default function AIAgentsPage() {
         >
           OpenUI integration guide
         </Link>{" "}
-        to register a custom component library, generate its system prompt, and
-        render interactive OpenUI Lang as it streams.
+        It covers registering the components, producing the system prompt and
+        rendering OpenUI Lang while it streams in.
       </p>
     </>
   );

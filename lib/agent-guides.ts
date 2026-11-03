@@ -50,13 +50,13 @@ export const agentGuides = {
     seo: {
       title: "Animated Combobox · React Component",
       description:
-        "A composable React combobox with searchable input, portalled listbox, grouped filtering, keyboard navigation, and controlled or uncontrolled state.",
+        "Searchable React picker: type in the field to narrow grouped options, step through them with arrow keys, press Enter to choose. Custom filter supported.",
     },
     introduction:
-      "A combobox combines text input with a filtered listbox while keeping focus in the input. It manages search, active-option navigation, selection, and portal positioning without owning the option data or surrounding form.",
+      "Use it when a plain select has too many options to scroll. The text field is the trigger, so people type to shrink the list and never leave the field. The component tracks the query, the highlighted row and the chosen value; your app supplies the options and whatever form wraps them.",
     composition: {
       description:
-        "Place the searchable input inside the trigger, then compose listbox primitives inside the portalled content.",
+        "The trigger wraps the text field. Items, groups, labels, separators and the empty message go in the content, which renders through a body portal.",
       tree: "Combobox\n├── ComboboxTrigger\n│   └── ComboboxInput\n└── ComboboxContent\n    └── ComboboxList\n        ├── ComboboxEmpty\n        ├── ComboboxGroup\n        │   ├── ComboboxLabel\n        │   └── ComboboxItem\n        └── ComboboxSeparator",
     },
     lifecycle: [
@@ -115,13 +115,13 @@ export const agentGuides = {
     seo: {
       title: "Animated Sidebar · React Component",
       description:
-        "A composable React application sidebar with responsive collapse, nested navigation, an animated icon rail, and a focus-managed mobile sheet.",
+        "Shadcn-style app sidebar for React: folds to icons or off-canvas on desktop, becomes a sheet on phones, toggles with Ctrl/Cmd+B and nested menus morph open.",
     },
     introduction:
-      "An application sidebar is the responsive shell around persistent navigation. It coordinates desktop collapse, mobile presentation, nested destinations, and the content inset without owning the data rendered inside those regions.",
+      "Reach for this when an app needs a navigation column that works at every screen size. A provider keeps desktop and mobile open state apart, the sidebar picks how it collapses, and the inset beside it holds your page. Menu contents and the active item stay with your app.",
     composition: {
       description:
-        "Compose navigation groups inside the sidebar and place the application surface in the sibling inset.",
+        "Wrap the layout in the provider. Header, menu groups, footer and an optional rail live in the sidebar; your page goes in the inset next to it.",
       tree: "AnimatedSidebarProvider\n├── AnimatedSidebar\n│   ├── AnimatedSidebarHeader\n│   ├── AnimatedSidebarContent\n│   │   └── AnimatedSidebarMenu\n│   ├── AnimatedSidebarFooter\n│   └── AnimatedSidebarRail\n└── AnimatedSidebarInset",
     },
     lifecycle: [
@@ -168,7 +168,7 @@ export const agentGuides = {
         slug: "ai-sidebar",
         name: "AI Sidebar",
         description:
-          "Composes the shell with editable projects, folders, files, and bookmarks.",
+          "Builds a workspace navigator on top of this shell, holding projects, folders, bookmarks and files.",
       },
     ],
     contract: {
@@ -186,1282 +186,1124 @@ export const agentGuides = {
   "ai-sidebar": {
     seo: {
       title: "AI Sidebar for Agent Workspaces · React Component",
-      description:
-        "A collapsible React AI sidebar for draggable folders, projects, files, and bookmarks with keyboard navigation, rename, and optimistic rollback.",
+      description: "React sidebar for AI workspaces: a tree of folders and projects holding files and bookmarks, with drag to move, keyboard moves, inline rename and rollback on failed saves.",
     },
-    introduction:
-      "An AI sidebar organizes changing workspace resources rather than only routing between fixed destinations. Folder and project rows disclose children, while files and bookmarks become the active resource and can move or rename without destabilizing the surrounding workspace.",
+    introduction: "This sidebar manages workspace resources that keep changing, not just links to fixed pages. Folders and projects open to show what is inside; picking a file or bookmark makes it the active item, and any row can be moved or renamed without the rest of the workspace shifting.",
     composition: {
-      description:
-        "Place the resource tree inside Animated Sidebar content and keep the selected resource surface in the sibling inset.",
-      tree: "AnimatedSidebarProvider\n├── AnimatedSidebar\n│   ├── AnimatedSidebarContent\n│   │   └── AISidebar\n│   │       ├── Folder or project\n│   │       └── File or bookmark\n│   └── AnimatedSidebarRail\n└── AnimatedSidebarInset",
+      description: "Mount the tree in the Animated Sidebar content area and show the selected item in the inset next to it.",
+      tree: `AnimatedSidebarProvider
+├── AnimatedSidebar
+│   ├── AnimatedSidebarContent
+│   │   └── AISidebar
+│   │       ├── Folder or project
+│   │       └── File or bookmark
+│   └── AnimatedSidebarRail
+└── AnimatedSidebarInset`,
     },
     lifecycle: [
       {
         title: "Disclose",
-        description:
-          "Folders and projects reveal children without becoming active destinations.",
+        description: "Folders and projects reveal children without becoming active destinations.",
       },
       {
         title: "Interact",
-        description:
-          "Files select, rename, and move through distinct pointer and keyboard paths.",
+        description: "Files select, rename, and move through distinct pointer and keyboard paths.",
       },
       {
         title: "Persist",
-        description:
-          "Moves render immediately, then settle or roll back after persistence responds.",
+        description: "Moves render immediately, then settle or roll back after persistence responds.",
       },
     ],
     principles: [
       {
         title: "Separate disclosure from selection",
-        description:
-          "Folder clicks only expand or collapse. Files and bookmarks own active-resource selection.",
+        description: "Folder clicks only expand or collapse. Files and bookmarks own active-resource selection.",
       },
       {
         title: "Resolve gesture conflicts",
-        description:
-          "Whole-row dragging suppresses the following click, and double-click rename applies only to leaf resources.",
+        description: "Whole-row dragging suppresses the following click, and double-click rename applies only to leaf resources.",
       },
       {
         title: "Keep the frame stable",
-        description:
-          "Only the resource list scrolls, leaving utility actions, the section heading, and inset content fixed while folders open.",
+        description: "Only the resource list scrolls, leaving utility actions, the section heading, and inset content fixed while folders open.",
       },
     ],
     implementation: {
       title: "Treat movement as an optimistic transaction",
-      description:
-        "Update the local tree first and persist the normalized source, target, and position. Restore the captured tree and announce the rollback when saving fails.",
+      description: "Update the local tree first and persist the normalized source, target, and position. Restore the captured tree and announce the rollback when saving fails.",
     },
     connections: [
       {
         slug: "message-scroller",
         name: "Message Scroller",
-        description: "Can fill the inset with the selected conversation.",
+        description: "Shows the chosen conversation in the inset.",
       },
       {
         slug: "prompt-input",
         name: "Prompt Input",
-        description: "Can anchor the composer beneath active resource content.",
+        description: "Sits under the active content as the composer.",
       },
     ],
     contract: {
       owns: "Resource disclosure, leaf selection, keyboard focus, drag targets, rename presentation, overflow labels, and optimistic rollback.",
-      leaves:
-        "Sidebar shell behavior, authorization, persistence, resource fetching, and inset content to the application.",
+      leaves: "Sidebar shell behavior, authorization, persistence, resource fetching, and inset content to the application.",
     },
     guidance: {
-      useWhen:
-        "An agent workspace needs editable folders, projects, files, bookmarks, or conversations inside a collapsible sidebar.",
-      avoidWhen:
-        "The sidebar contains only fixed application destinations with no hierarchy, editing, movement, or optimistic state.",
+      useWhen: "An agent workspace needs editable folders, projects, files, bookmarks, or conversations inside a collapsible sidebar.",
+      avoidWhen: "The sidebar contains only fixed application destinations with no hierarchy, editing, movement, or optimistic state.",
     },
   },
   "message-bubble": {
     seo: {
-      title: "Message Bubble for AI Chat · React Component",
-      description:
-        "An animated React message bubble for AI chat with alignment, visual tones, grouped replies, interactive content, and expandable long messages.",
+      title: "AI Chat Message Bubble · React Component",
+      description: "React chat bubble for AI conversations: six tones, start or end alignment, grouped rows, clickable content and a show-more toggle for long replies.",
     },
-    introduction:
-      "A bubble is the visible surface of one message, not the conversation itself. It should give content a clear reading shape without taking ownership of sender identity, delivery, or scroll behavior.",
+    introduction: "Think of the bubble as paint, not plumbing. It shapes how one message reads, while who sent it, whether it arrived and where the transcript scrolls are settled by the components around it.",
     composition: {
-      description:
-        "Place the bubble inside message content so identity and layout remain separate from the visible response surface.",
-      tree: "Message\n├── MessageAvatar\n└── MessageContent\n    └── MessageBubble\n        └── MessageBubbleContent",
+      description: "Nest MessageBubble within MessageContent, so the row keeps avatar and alignment while the bubble only styles what is said.",
+      tree: `Message
+├── MessageAvatar
+└── MessageContent
+    └── MessageBubble
+        └── MessageBubbleContent`,
     },
     lifecycle: [
       {
         title: "Shape the content",
-        description:
-          "The surface takes its width and alignment from the message it contains.",
+        description: "The surface takes its width and alignment from the message it contains.",
       },
       {
         title: "Update in place",
-        description:
-          "Streaming content grows inside the same geometry without replaying the entrance.",
+        description: "Streaming content grows inside the same geometry without replaying the entrance.",
       },
       {
         title: "Disclose overflow",
-        description:
-          "Long content can open downward while the original reading position stays clear.",
+        description: "Long content can open downward while the original reading position stays clear.",
       },
     ],
     principles: [
       {
         title: "Size around the content",
-        description:
-          "Short replies stay compact while longer responses gain a comfortable measure. The surface should never force every message to the same width.",
+        description: "Short replies stay compact while longer responses gain a comfortable measure. The surface should never force every message to the same width.",
       },
       {
         title: "Keep geometry stable",
-        description:
-          "Streaming text updates inside the final surface. Backgrounds and neighboring rows should not chase every arriving word.",
+        description: "Streaming text updates inside the final surface. Backgrounds and neighboring rows should not chase every arriving word.",
       },
       {
         title: "Disclose with intent",
-        description:
-          "Collapse only content that benefits from a preview. Keep the control outside the clipped text so opening the message always moves downward.",
+        description: "Collapse only content that benefits from a preview. Keep the control outside the clipped text so opening the message always moves downward.",
       },
     ],
     implementation: {
       title: "Do not animate the bubble on every content update",
-      description:
-        "Mount motion belongs to the new message event. Streaming should update only the inner content; replaying scale or layout motion for every token makes the surface flicker and causes nearby messages to drift.",
+      description: "Mount motion belongs to the new message event. Streaming should update only the inner content; replaying scale or layout motion for every token makes the surface flicker and causes nearby messages to drift.",
     },
     connections: [
       {
         slug: "message",
         name: "Message",
-        description: "Adds sender alignment, metadata, and avatar placement.",
+        description: "Supplies the row: sender side, header details and the avatar slot.",
       },
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Provides the active and completed response lifecycle.",
+        description: "Handles the answer while it streams and after it finishes.",
       },
     ],
     contract: {
       owns: "Surface tone, content width, alignment, grouping, and optional disclosure.",
-      leaves:
-        "Sender metadata, streaming state, transcript order, and message transport to surrounding components.",
+      leaves: "Sender metadata, streaming state, transcript order, and message transport to surrounding components.",
     },
     guidance: {
-      useWhen:
-        "One conversational item needs a distinct surface, alignment, tone, or optional expansion.",
-      avoidWhen:
-        "The content is an execution log, permission request, or structured agent event with its own semantics.",
+      useWhen: "One conversational item needs a distinct surface, alignment, tone, or optional expansion.",
+      avoidWhen: "The content is an execution log, permission request, or structured agent event with its own semantics.",
     },
   },
   message: {
     seo: {
       title: "Message for AI Chat · React Component",
-      description:
-        "A composable React message row for AI chat with sender alignment, avatars, metadata, grouped messages, streaming content, and arrival motion.",
+      description: "React message primitives for AI chat transcripts: user or assistant sides, avatars, header and footer slots, grouped rows, typing dots and a one-time arrival pop.",
     },
-    introduction:
-      "A message is a conversation row. It coordinates the avatar, metadata, content surface, and delivery details while allowing the content itself to be a bubble, an agent activity, a tool result, or a composed response.",
+    introduction: "Each Message is one turn in the transcript. It lines up the avatar, the header and footer details and the content slot, and it does not care whether that slot holds a bubble, a tool result, an activity log or a full answer.",
     composition: {
-      description:
-        "Build each conversation row from independent identity, content, and metadata primitives.",
-      tree: "MessageGroup\n└── Message\n    ├── MessageAvatar\n    └── MessageContent\n        ├── MessageHeader\n        ├── MessageBubble\n        └── MessageFooter",
+      description: "Assemble a row from separate pieces for who spoke, what was said and the details around it.",
+      tree: `MessageGroup
+└── Message
+    ├── MessageAvatar
+    └── MessageContent
+        ├── MessageHeader
+        ├── MessageBubble
+        └── MessageFooter`,
     },
     lifecycle: [
       {
         title: "Establish the sender",
-        description:
-          "Alignment, avatar, and metadata locate the row in the conversation.",
+        description: "Alignment, avatar, and metadata locate the row in the conversation.",
       },
       {
         title: "Compose the payload",
-        description:
-          "A bubble, response, activity stream, or tool surface fills the content slot.",
+        description: "A bubble, response, activity stream, or tool surface fills the content slot.",
       },
       {
         title: "Hold its position",
-        description:
-          "The row stays stable while its inner content streams or changes state.",
+        description: "The row stays stable while its inner content streams or changes state.",
       },
     ],
     principles: [
       {
         title: "Compose the row",
-        description:
-          "Keep identity and metadata outside the message surface. This preserves alignment when the visible content changes shape.",
+        description: "Keep identity and metadata outside the message surface. This preserves alignment when the visible content changes shape.",
       },
       {
         title: "Group by speaker",
-        description:
-          "Consecutive messages can share rhythm and avatar placement without losing their individual semantic boundaries.",
+        description: "Consecutive messages can share rhythm and avatar placement without losing their individual semantic boundaries.",
       },
       {
         title: "Animate only arrivals",
-        description:
-          "A newly sent row may pop into place once. Existing rows remain still when text streams or the composer updates.",
+        description: "A newly sent row may pop into place once. Existing rows remain still when text streams or the composer updates.",
       },
     ],
     implementation: {
       title: "Keep the row identity stable",
-      description:
-        "Use a durable message id as the React key and keep arrival state separate from render state. Typing in the composer or appending streamed content should not remount a message that already exists.",
+      description: "Use a durable message id as the React key and keep arrival state separate from render state. Typing in the composer or appending streamed content should not remount a message that already exists.",
     },
     connections: [
       {
         slug: "message-bubble",
         name: "Message Bubble",
-        description: "Supplies the visual surface inside the row.",
+        description: "Paints the content slot with a tone and shape.",
       },
       {
         slug: "message-scroller",
         name: "Message Scroller",
-        description: "Positions message rows inside a reader-aware transcript.",
+        description: "Hosts the rows in a transcript that keeps up with new output.",
       },
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Renders progressive agent work as message content.",
+        description: "Fills a row with live reasoning, searches and tool calls.",
       },
     ],
     contract: {
       owns: "Row alignment, avatar placement, metadata slots, grouping, and one-time entrance motion.",
-      leaves:
-        "Bubble styling, transcript scrolling, response parsing, and persistence to composed primitives and application state.",
+      leaves: "Bubble styling, transcript scrolling, response parsing, and persistence to composed primitives and application state.",
     },
     guidance: {
-      useWhen:
-        "Content needs sender alignment, identity, metadata, or grouping inside a conversation.",
-      avoidWhen:
-        "You only need a visual content surface with no conversation-level identity or row layout.",
+      useWhen: "Content needs sender alignment, identity, metadata, or grouping inside a conversation.",
+      avoidWhen: "You only need a visual content surface with no conversation-level identity or row layout.",
     },
   },
   "message-scroller": {
     seo: {
       title: "Message Scroller for Streaming AI Chat · React Component",
-      description:
-        "A React message scroller that follows streamed AI responses at the live edge and releases automatic scrolling when the reader moves away.",
+      description: "React scroll container for streaming AI chat: sticks to the bottom while you read the latest output, releases the view once you scroll back, and can add a rail for jumping between messages.",
     },
-    introduction:
-      "A streaming transcript is not ordinary overflow. It must follow new output while the reader stays at the live edge, then stop moving the moment they choose to inspect earlier work.",
+    introduction: "Streaming chat breaks the usual rules of overflow. While someone is reading the newest line, the view should keep up with it; once they scroll back to check something, it must stop pulling them down.",
     composition: {
-      description:
-        "Keep the scrolling viewport outside the message primitives it follows.",
-      tree: "MessageScroller\n└── MessageGroup\n    └── Message\n        └── MessageContent",
+      description: "Wrap the message rows with the scroller instead of building scrolling into the rows.",
+      tree: `MessageScroller
+└── MessageGroup
+    └── Message
+        └── MessageContent`,
     },
     lifecycle: [
       {
         title: "Follow",
-        description:
-          "While the reader remains at the end, each content update stays in view.",
+        description: "While the reader remains at the end, each content update stays in view.",
       },
       {
         title: "Release",
-        description:
-          "A deliberate scroll or rail jump transfers control back to the reader immediately.",
+        description: "A deliberate scroll or rail jump transfers control back to the reader immediately.",
       },
       {
         title: "Resume",
-        description:
-          "Returning to the live edge restores automatic following for later output.",
+        description: "Returning to the live edge restores automatic following for later output.",
       },
     ],
     principles: [
       {
         title: "Follow the live edge",
-        description:
-          "New output remains visible only while the reader is already following it. Returning to the end re-enables that behavior.",
+        description: "New output remains visible only while the reader is already following it. Returning to the end re-enables that behavior.",
       },
       {
         title: "Respect reader intent",
-        description:
-          "Wheel, touch, and keyboard navigation release automatic following so incoming content never fights deliberate reading.",
+        description: "Wheel, touch, and keyboard navigation release automatic following so incoming content never fights deliberate reading.",
       },
       {
         title: "Protect the transcript",
-        description:
-          "Scroll behavior stays outside message state. An optional rail derives navigation and hover excerpts from Message rows without rewriting their streamed content.",
+        description: "Scroll behavior stays outside message state. An optional rail derives navigation and hover excerpts from Message rows without rewriting their streamed content.",
       },
     ],
     implementation: {
       title: "Treat auto-follow as a reader state",
-      description:
-        "Do not call scroll-to-end for every render. Follow only while the viewport is already near the live edge, release on deliberate navigation, and let an explicit return to the end resume following.",
+      description: "Do not call scroll-to-end for every render. Follow only while the viewport is already near the live edge, release on deliberate navigation, and let an explicit return to the end resume following.",
     },
     connections: [
       {
         slug: "message",
         name: "Message",
-        description: "Provides stable, semantic rows for the transcript.",
+        description: "Gives the transcript consistent, labelled rows.",
       },
       {
         slug: "prompt-input",
         name: "Prompt Input",
-        description: "Starts new turns without owning transcript movement.",
+        description: "Starts the next turn but leaves scrolling to the scroller.",
       },
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Supplies the growing content the viewport follows.",
+        description: "Produces the growing text that the view keeps in sight.",
       },
     ],
     contract: {
       owns: "The scroll viewport, live-edge following, optional message navigation, reader release, and transcript accessibility state.",
-      leaves:
-        "Message data, transport, persistence, branching, and content rendering to the application.",
+      leaves: "Message data, transport, persistence, branching, and content rendering to the application.",
     },
     guidance: {
-      useWhen:
-        "A transcript grows through streamed responses and should follow output without trapping the reader at the bottom.",
-      avoidWhen:
-        "The content is a static list, a short non-streaming exchange, or a virtualized feed with its own scroll engine.",
+      useWhen: "A transcript grows through streamed responses and should follow output without trapping the reader at the bottom.",
+      avoidWhen: "The content is a static list, a short non-streaming exchange, or a virtualized feed with its own scroll engine.",
     },
   },
   "prompt-input": {
     seo: {
       title: "AI Prompt Input · React Component",
-      description:
-        "An auto-growing React prompt input for AI apps with model selection, attachments, prompt actions, keyboard submission, and send or stop states.",
+      description: "React chat composer for AI apps: a textarea that grows with the draft, model picker and prompt action menu; it sends on Enter and shows a stop button during replies.",
     },
-    introduction:
-      "The composer is the handoff point between a person and an agent. It should keep the current instruction editable, make available capabilities discoverable, and clearly separate sending from stopping active work.",
+    introduction: "This is where a person hands work to the agent. The draft should stay editable, the tools on offer should be easy to find, and sending a new request must never be confused with stopping the current one.",
     composition: {
-      description:
-        "Place the prompt beside the transcript so drafting never becomes part of the scrolling message history.",
-      tree: "Chat\n├── MessageScroller\n│   └── MessageGroup\n└── PromptInput",
+      description: "Keep the composer next to the transcript, outside it, so a half-written prompt never scrolls away with old messages.",
+      tree: `Chat
+├── MessageScroller
+│   └── MessageGroup
+└── PromptInput`,
     },
     lifecycle: [
       {
         title: "Compose",
-        description:
-          "The draft grows within a bounded editor while secondary controls stay available.",
+        description: "The draft grows within a bounded editor while secondary controls stay available.",
       },
       {
         title: "Submit",
-        description:
-          "Keyboard or button submission sends one trimmed instruction and clears the draft.",
+        description: "Keyboard or button submission sends one trimmed instruction and clears the draft.",
       },
       {
         title: "Continue or stop",
-        description:
-          "Focus remains ready for the next turn while the primary action reflects active work.",
+        description: "Focus remains ready for the next turn while the primary action reflects active work.",
       },
     ],
     principles: [
       {
         title: "Keep writing primary",
-        description:
-          "Model and attachment controls stay secondary to the prompt. The text area gets the space and focus behavior needed for uninterrupted input.",
+        description: "Model and attachment controls stay secondary to the prompt. The text area gets the space and focus behavior needed for uninterrupted input.",
       },
       {
         title: "Show the current mode",
-        description:
-          "The selected model and available prompt actions remain visible before submission, not hidden after the request starts.",
+        description: "The selected model and available prompt actions remain visible before submission, not hidden after the request starts.",
       },
       {
         title: "Preserve momentum",
-        description:
-          "Submission clears the draft and returns focus without moving the surrounding conversation. Loading swaps the action from send to stop.",
+        description: "Submission clears the draft and returns focus without moving the surrounding conversation. Loading swaps the action from send to stop.",
       },
     ],
     implementation: {
       title: "Measure auto-growth without shifting the page",
-      description:
-        "A fixed-row composer should skip the reset-and-measure cycle entirely. For auto-growing input, cap the measured height and preserve focus after submission so the transcript does not jump when the next draft begins.",
+      description: "A fixed-row composer should skip the reset-and-measure cycle entirely. For auto-growing input, cap the measured height and preserve focus after submission so the transcript does not jump when the next draft begins.",
     },
     connections: [
       {
         slug: "message-scroller",
         name: "Message Scroller",
-        description: "Keeps the conversation stable around the composer.",
+        description: "Holds the transcript steady above the composer.",
       },
       {
         slug: "tool-approval",
         name: "Tool Approval",
-        description: "Temporarily replaces freeform input with scoped permission.",
+        description: "Asks for a yes or no on one tool before free typing resumes.",
       },
       {
         slug: "approval-card",
         name: "Approval Card",
-        description: "Collects structured human input during a paused run.",
+        description: "Gathers structured answers while the run waits.",
       },
     ],
     contract: {
       owns: "Draft input, model and action selection, keyboard submission, focus, and send or stop controls.",
-      leaves:
-        "Uploads, request transport, conversation state, and model availability to supplied handlers and data.",
+      leaves: "Uploads, request transport, conversation state, and model availability to supplied handlers and data.",
     },
     guidance: {
-      useWhen:
-        "People need to compose agent instructions with optional models, attachments, or prompt actions.",
-      avoidWhen:
-        "The interaction is a fixed command, a single structured field, or a form that requires validation across many inputs.",
+      useWhen: "People need to compose agent instructions with optional models, attachments, or prompt actions.",
+      avoidWhen: "The interaction is a fixed command, a single structured field, or a form that requires validation across many inputs.",
     },
   },
   "todo-list": {
     seo: {
       title: "Agent Todo List · React Component",
-      description:
-        "A collapsible React todo list for AI agents with pending, active, and completed tasks, animated status marks, and a live completion count.",
+      description: "React checklist for the plan an AI agent follows: pending, running, done and cancelled marks, per-task progress and detail, a done count, and auto-collapse once the plan wraps up.",
     },
-    introduction:
-      "An agent plan should explain what remains without pretending every internal thought is a task. Use a todo list for durable work items whose state matters to the person following the run.",
+    introduction: "Use a plan to show the person what is left to do, not to narrate every passing thought. Only work items whose status someone watching the run actually cares about belong here.",
     composition: {
-      description:
-        "Render the plan as message content when it belongs to a conversational agent run.",
-      tree: "Message\n└── MessageContent\n    └── TodoList",
+      description: "When the plan comes from a chat-based run, render it inside that turn's message content.",
+      tree: `Message
+└── MessageContent
+    └── TodoList`,
     },
     lifecycle: [
       {
         title: "Plan",
-        description:
-          "Durable tasks enter in a readable order with one clear active item.",
+        description: "Durable tasks enter in a readable order with one clear active item.",
       },
       {
         title: "Execute",
-        description:
-          "Status marks advance in place as the agent completes meaningful work.",
+        description: "Status marks advance in place as the agent completes meaningful work.",
       },
       {
         title: "Summarize",
-        description:
-          "The final count and completed icon reduce the plan to a compact record.",
+        description: "The final count and completed icon reduce the plan to a compact record.",
       },
     ],
     principles: [
       {
         title: "Show durable steps",
-        description:
-          "Items represent meaningful work that can be pending, active, or complete—not every token-level action the agent performs.",
+        description: "Items represent meaningful work that can be pending, active, or complete—not every token-level action the agent performs.",
       },
       {
         title: "Advance in place",
-        description:
-          "Status marks morph without replacing the row, so labels and metadata remain easy to track as work progresses.",
+        description: "Status marks morph without replacing the row, so labels and metadata remain easy to track as work progresses.",
       },
       {
         title: "Summarize progress",
-        description:
-          "The heading carries a compact completed count and the list can collapse once the plan no longer needs attention.",
+        description: "The heading carries a compact completed count and the list can collapse once the plan no longer needs attention.",
       },
     ],
     implementation: {
       title: "Update status without replacing the task",
-      description:
-        "Keep each task keyed by a durable id and morph only its status mark. Replacing the complete row breaks reading continuity, replays text motion, and makes progress feel less trustworthy.",
+      description: "Keep each task keyed by a durable id and morph only its status mark. Replacing the complete row breaks reading continuity, replays text motion, and makes progress feel less trustworthy.",
     },
     connections: [
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Shows the chronological events occurring between tasks.",
+        description: "Logs what happens between one task and the next.",
       },
       {
         slug: "loading-states",
         name: "Agent Loading States",
-        description: "Covers work before a durable plan is available.",
+        description: "Fills the gap before any plan exists.",
       },
       {
         slug: "tool-result",
         name: "Tool Result",
-        description: "Presents the evidence produced by an active task.",
+        description: "Shows the output a task produced.",
       },
     ],
     contract: {
       owns: "Task presentation, status marks, completion count, disclosure, and list transitions.",
-      leaves:
-        "Planning logic, task execution, ordering decisions, and persistence to the agent runtime.",
+      leaves: "Planning logic, task execution, ordering decisions, and persistence to the agent runtime.",
     },
     guidance: {
-      useWhen:
-        "A multi-step run has durable tasks whose progress helps the reader understand what remains.",
-      avoidWhen:
-        "The events are transient reasoning, tool output, or an execution trace better represented chronologically.",
+      useWhen: "A multi-step run has durable tasks whose progress helps the reader understand what remains.",
+      avoidWhen: "The events are transient reasoning, tool output, or an execution trace better represented chronologically.",
     },
   },
   "code-block": {
     seo: {
       title: "Streaming Code Block for AI Agents · React Component",
-      description:
-        "A syntax-highlighted React code block for AI output with stable streaming, line numbers, focused ranges, smooth following, and copy feedback.",
+      description: "React code viewer for streamed AI output: highlighting for six languages, line numbers, emphasized lines, a height cap that trails new lines, and a copy button.",
     },
-    introduction:
-      "Generated code changes faster than a conventional static snippet. The surface must remain readable while lines arrive, preserve syntax structure, and make copying the final result predictable.",
+    introduction: "Code from a model arrives line by line, unlike a snippet pasted into docs. It has to stay legible mid-stream, keep its highlighting intact and give people one obvious way to copy the finished file.",
     composition: {
-      description:
-        "Nest generated source inside the response that owns its streaming lifecycle.",
-      tree: "StreamingResponse\n└── CodeBlock",
+      description: "Put the generated code inside whichever response decides when streaming starts and stops.",
+      tree: `StreamingResponse
+└── CodeBlock`,
     },
     lifecycle: [
       {
         title: "Receive",
-        description:
-          "Source text may arrive incrementally without changing the surrounding block.",
+        description: "Source text may arrive incrementally without changing the surrounding block.",
       },
       {
         title: "Highlight",
-        description:
-          "Tokens, line numbers, and focused ranges update as stable visual layers.",
+        description: "Tokens, line numbers, and focused ranges update as stable visual layers.",
       },
       {
         title: "Finalize",
-        description:
-          "Following stops at completion and the complete source becomes ready to copy.",
+        description: "Following stops at completion and the complete source becomes ready to copy.",
       },
     ],
     principles: [
       {
         title: "Highlight complete units",
-        description:
-          "Token colors should update without flashing the entire block. Partial input remains legible until the current language structure is complete.",
+        description: "Token colors should update without flashing the entire block. Partial input remains legible until the current language structure is complete.",
       },
       {
         title: "Keep lines addressable",
-        description:
-          "Line numbers and focused ranges give discussions a stable reference even when only part of the file is emphasized.",
+        description: "Line numbers and focused ranges give discussions a stable reference even when only part of the file is emphasized.",
       },
       {
         title: "Follow without flicker",
-        description:
-          "A bounded viewport follows appended lines smoothly while the code background and existing rows remain fixed.",
+        description: "A bounded viewport follows appended lines smoothly while the code background and existing rows remain fixed.",
       },
     ],
     implementation: {
       title: "Separate source updates from highlighted output",
-      description:
-        "Do not rebuild and crossfade the entire highlighted tree for every character. Preserve the container and existing lines, then update the smallest complete source unit the highlighter can render reliably.",
+      description: "Do not rebuild and crossfade the entire highlighted tree for every character. Preserve the container and existing lines, then update the smallest complete source unit the highlighter can render reliably.",
     },
     connections: [
       {
         slug: "file-diff",
         name: "File Diff",
-        description: "Explains additions and removals around highlighted code.",
+        description: "Marks which lines were added or removed.",
       },
       {
         slug: "tool-result",
         name: "Tool Result",
-        description: "Wraps generated code in an execution outcome.",
+        description: "Frames returned code as the output of a run.",
       },
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Embeds highlighted code inside a rich answer.",
+        description: "Hosts code alongside prose in a full answer.",
       },
     ],
     contract: {
       owns: "Highlighted presentation, line numbers, focused ranges, streaming follow behavior, and copy feedback.",
-      leaves:
-        "Code generation, language detection policy, execution, and file persistence to the application.",
+      leaves: "Code generation, language detection policy, execution, and file persistence to the application.",
     },
     guidance: {
-      useWhen:
-        "Generated or retrieved source needs syntax highlighting, line references, streaming, or focused ranges.",
-      avoidWhen:
-        "You need to explain file changes with additions and removals; use a file diff for that relationship.",
+      useWhen: "Generated or retrieved source needs syntax highlighting, line references, streaming, or focused ranges.",
+      avoidWhen: "You need to explain file changes with additions and removals; use a file diff for that relationship.",
     },
   },
   "approval-card": {
     seo: {
-      title: "Human-in-the-Loop Approval Card · React Component",
-      description:
-        "A React approval card for human-in-the-loop AI workflows with questions, custom responses, multi-step review, revision, approval, and rejection.",
+      title: "Agent Approval Card · Human-in-the-Loop React Component",
+      description: "React card that pauses an AI agent for a human decision: stepped questions, write-in answers, approve, request changes or reject, with the outcome kept in the thread.",
     },
-    introduction:
-      "Human-in-the-loop work is a temporary transfer of control. The card should state the decision clearly, collect only the required input, and return a durable answer to the paused agent run.",
+    introduction: "Asking a person mid-run hands control back to them for a moment. Say plainly what needs deciding, ask only for what the agent needs, and give the paused run an answer it can rely on.",
     composition: {
-      description:
-        "Place the approval surface inside the message that pauses the agent run.",
-      tree: "Message\n└── MessageContent\n    └── ApprovalCard",
+      description: "Render the card in the message where the agent stopped to wait.",
+      tree: `Message
+└── MessageContent
+    └── ApprovalCard`,
     },
     lifecycle: [
       {
         title: "Pause",
-        description:
-          "The run exposes the exact question or review that prevents safe continuation.",
+        description: "The run exposes the exact question or review that prevents safe continuation.",
       },
       {
         title: "Decide",
-        description:
-          "The person selects, writes, revises, approves, or rejects the requested input.",
+        description: "The person selects, writes, revises, approves, or rejects the requested input.",
       },
       {
         title: "Resume",
-        description:
-          "The completed decision replaces the controls and returns a stable result to the run.",
+        description: "The completed decision replaces the controls and returns a stable result to the run.",
       },
     ],
     principles: [
       {
         title: "Ask one decision at a time",
-        description:
-          "Each step has a focused question and mutually understandable choices. Selecting a single answer can advance immediately.",
+        description: "Each step has a focused question and mutually understandable choices. Selecting a single answer can advance immediately.",
       },
       {
         title: "Keep context attached",
-        description:
-          "The request, options, and custom response field stay in one surface so the decision never becomes detached from its reason.",
+        description: "The request, options, and custom response field stay in one surface so the decision never becomes detached from its reason.",
       },
       {
         title: "Record the outcome",
-        description:
-          "Completion replaces the input state with a concise summary that remains readable in the conversation history.",
+        description: "Completion replaces the input state with a concise summary that remains readable in the conversation history.",
       },
     ],
     implementation: {
       title: "Model the pause as durable workflow state",
-      description:
-        "The selected answer must survive remounts and reconnects because the agent run is waiting on it. Record the completed decision before resuming work, then render that record in place of the controls.",
+      description: "The selected answer must survive remounts and reconnects because the agent run is waiting on it. Record the completed decision before resuming work, then render that record in place of the controls.",
     },
     connections: [
       {
         slug: "tool-approval",
         name: "Tool Approval",
-        description: "Handles the narrower case of one tool permission.",
+        description: "Covers the simpler yes or no on a single tool.",
       },
       {
         slug: "message",
         name: "Message",
-        description: "Places the decision inside the conversation history.",
+        description: "Keeps the decision in the transcript next to its turn.",
       },
       {
         slug: "todo-list",
         name: "Todo List",
-        description: "Shows which planned work is paused by the decision.",
+        description: "Shows which planned steps are waiting on the answer.",
       },
     ],
     contract: {
       owns: "Question flow, choice state, freeform input, review controls, and completed decision summary.",
-      leaves:
-        "Authorization policy, workflow suspension, side effects, and resumption to the agent runtime.",
+      leaves: "Authorization policy, workflow suspension, side effects, and resumption to the agent runtime.",
     },
     guidance: {
-      useWhen:
-        "An agent cannot continue responsibly without a human choice, clarification, revision, or approval.",
-      avoidWhen:
-        "The question is optional, can be inferred safely, or concerns permission to execute one specific tool.",
+      useWhen: "An agent cannot continue responsibly without a human choice, clarification, revision, or approval.",
+      avoidWhen: "The question is optional, can be inferred safely, or concerns permission to execute one specific tool.",
     },
   },
   "file-diff": {
     seo: {
       title: "Streaming File Diff for AI Agents · React Component",
-      description:
-        "A syntax-highlighted React file diff for AI edits with old and new line numbers, streamed rows, live change counts, and completion collapse.",
+      description: "React diff view for code an AI agent edits: original and updated line numbers, highlighted rows that stream in, running plus and minus counts, copy, and collapse when done.",
     },
-    introduction:
-      "A file diff explains a proposed or completed edit. It should preserve the relationship between old and new lines while making the scale and status of the change visible at a glance.",
+    introduction: "A diff tells someone what an edit did, or is about to do, to a file. Keep original and updated line numbers side by side, and let the size of the change and whether it has landed be readable in one glance.",
     composition: {
-      description:
-        "Place the patch inside the tool output that produced the file change.",
-      tree: "ToolResult\n└── ToolResultOutput\n    └── FileDiff",
+      description: "Show the patch inside the result of the tool call that edited the file.",
+      tree: `ToolResult
+└── ToolResultOutput
+    └── FileDiff`,
     },
     lifecycle: [
       {
         title: "Open the change",
-        description:
-          "Filename, language, and live counts establish the scope of the edit.",
+        description: "Filename, language, and live counts establish the scope of the edit.",
       },
       {
         title: "Append rows",
-        description:
-          "Context, additions, and removals arrive without reanimating earlier lines.",
+        description: "Context, additions, and removals arrive without reanimating earlier lines.",
       },
       {
         title: "Reduce to summary",
-        description:
-          "Completion collapses the patch while keeping the full change one action away.",
+        description: "Completion collapses the patch while keeping the full change one action away.",
       },
     ],
     principles: [
       {
         title: "Keep both line spaces",
-        description:
-          "Old and new line numbers remain distinct so additions, removals, and unchanged context can be discussed precisely.",
+        description: "Original and updated line numbers remain distinct so additions, removals, and unchanged context can be discussed precisely.",
       },
       {
         title: "Stream by row",
-        description:
-          "New diff rows arrive as stable units. Existing syntax and backgrounds do not reanimate when another row is appended.",
+        description: "New diff rows arrive as stable units. Existing syntax and backgrounds do not reanimate when another row is appended.",
       },
       {
         title: "Collapse to the result",
-        description:
-          "After completion, the disclosure can reduce to the filename and change counts while preserving access to the full patch.",
+        description: "After completion, the disclosure can reduce to the filename and change counts while preserving access to the full patch.",
       },
     ],
     implementation: {
       title: "Append complete diff rows",
-      description:
-        "A streamed patch should reveal one parsed row at a time. Character-level updates can change diff markers, line numbers, and syntax classification mid-frame, producing visible flicker and incorrect alignment.",
+      description: "A streamed patch should reveal one parsed row at a time. Character-level updates can change diff markers, line numbers, and syntax classification mid-frame, producing visible flicker and incorrect alignment.",
     },
     connections: [
       {
         slug: "code-block",
         name: "Code Block",
-        description: "Provides the shared syntax presentation for source lines.",
+        description: "Shares the same syntax colors for each line.",
       },
       {
         slug: "tool-result",
         name: "Tool Result",
-        description: "Summarizes the command or edit that produced the patch.",
+        description: "Wraps the patch in the run that made it.",
       },
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Records the file edit among surrounding agent events.",
+        description: "Lists the edit in order with the rest of the run.",
       },
     ],
     contract: {
-      owns: "Diff rows, old and new line numbers, syntax presentation, change counts, and completion disclosure.",
-      leaves:
-        "Diff generation, patch application, conflict handling, and repository state to the application.",
+      owns: "Diff rows, original and updated line numbers, syntax presentation, change counts, and completion disclosure.",
+      leaves: "Diff generation, patch application, conflict handling, and repository state to the application.",
     },
     guidance: {
-      useWhen:
-        "A person needs to inspect how an agent changed a file, including old and new line relationships.",
-      avoidWhen:
-        "The content is a standalone snippet, a complete file, or raw terminal output with no before-and-after structure.",
+      useWhen: "A person needs to inspect how an agent changed a file, including old and new line relationships.",
+      avoidWhen: "The content is a standalone snippet, a complete file, or raw terminal output with no before-and-after structure.",
     },
   },
   "tool-result": {
     seo: {
       title: "AI Tool Result · React Component",
-      description:
-        "A React tool-result disclosure for AI agents with terminal or request output, streaming status, bounded following, retry, copy, and completion states.",
+      description: "React panel for AI tool call output: terminal logs or request bodies, live status, a capped view that tracks new lines, retry, copy and a compact finished state.",
     },
-    introduction:
-      "A tool result is evidence from an execution, not another chat bubble. It should connect a compact run summary to the output needed for inspection, recovery, or reuse.",
+    introduction: "Treat a tool result as a receipt from something that ran, not as one more chat message. A short summary sits on top; the output underneath is there for anyone who needs to check, retry or reuse it.",
     composition: {
-      description:
-        "Use the output primitive for terminal text, request details, generated code, or another structured result.",
-      tree: "ToolResult\n└── ToolResultOutput",
+      description: "Feed the output primitive whatever the tool produced: shell text, request details, code or other structured data.",
+      tree: `ToolResult
+└── ToolResultOutput`,
     },
     lifecycle: [
       {
         title: "Run",
-        description:
-          "The header identifies the action, target, duration, and current execution state.",
+        description: "The header identifies the action, target, duration, and current execution state.",
       },
       {
         title: "Stream evidence",
-        description:
-          "Output follows inside a bounded viewport while the summary remains readable.",
+        description: "Output follows inside a bounded viewport while the summary remains readable.",
       },
       {
         title: "Resolve",
-        description:
-          "Success or failure replaces the active state and exposes relevant recovery actions.",
+        description: "Success or failure replaces the active state and exposes relevant recovery actions.",
       },
     ],
     principles: [
       {
         title: "Lead with the outcome",
-        description:
-          "The title and colored status explain success, failure, or progress before the reader inspects raw output.",
+        description: "The title and colored status explain success, failure, or progress before the reader inspects raw output.",
       },
       {
         title: "Keep output bounded",
-        description:
-          "Long terminal or response bodies stream inside a capped area instead of expanding the entire conversation indefinitely.",
+        description: "Long terminal or response bodies stream inside a capped area instead of expanding the entire conversation indefinitely.",
       },
       {
         title: "Keep recovery nearby",
-        description:
-          "Retry and copy actions appear with the result they affect, then the completed disclosure can return to a compact row.",
+        description: "Retry and copy actions appear with the result they affect, then the completed disclosure can return to a compact row.",
       },
     ],
     implementation: {
       title: "Keep status separate from raw output",
-      description:
-        "The execution state should remain readable even when output is empty, malformed, or extremely long. Derive the summary from the tool lifecycle, not from strings found inside the result body.",
+      description: "The execution state should remain readable even when output is empty, malformed, or extremely long. Derive the summary from the tool lifecycle, not from strings found inside the result body.",
     },
     connections: [
       {
         slug: "tool-approval",
         name: "Tool Approval",
-        description: "Collects permission before the execution begins.",
+        description: "Asks permission before anything runs.",
       },
       {
         slug: "code-block",
         name: "Code Block",
-        description: "Renders highlighted code returned by a tool.",
+        description: "Highlights code that a tool hands back.",
       },
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Summarizes the tool invocation within a longer run.",
+        description: "Logs the call as one step in a longer run.",
       },
     ],
     contract: {
       owns: "Execution summary, status presentation, streamed output viewport, disclosure, and result actions.",
-      leaves:
-        "Tool invocation, retries, cancellation, response parsing, and error policy to supplied callbacks.",
+      leaves: "Tool invocation, retries, cancellation, response parsing, and error policy to supplied callbacks.",
     },
     guidance: {
-      useWhen:
-        "A tool execution produces output that may need inspection, copying, retrying, or a durable completion record.",
-      avoidWhen:
-        "The tool is still awaiting permission, the output is a file patch, or only a transient activity label is needed.",
+      useWhen: "A tool execution produces output that may need inspection, copying, retrying, or a durable completion record.",
+      avoidWhen: "The tool is still awaiting permission, the output is a file patch, or only a transient activity label is needed.",
     },
   },
   "streaming-response": {
     seo: {
       title: "Streaming AI Response · React Component",
-      description:
-        "A React streaming-response surface that renders rich content, then reveals copy, retry, feedback, and expandable citations after completion.",
+      description: "React wrapper for streamed AI answers: renders text or Markdown as it arrives, then adds copy, retry, thumbs up or down and a collapsible list of sources.",
     },
-    introduction:
-      "A response has two distinct phases: content is still arriving, then the answer becomes available for action. The layout should remain stable across that boundary while rich content continues to render normally.",
+    introduction: "Every answer lives through two stages: first the text is still coming in, then it is done and ready to act on. Nothing should jump at that handoff, and rich formatting keeps rendering as usual throughout.",
     composition: {
-      description:
-        "Keep response state inside the message surface while the outer row remains stable.",
-      tree: "Message\n└── MessageContent\n    └── MessageBubble\n        └── StreamingResponse",
+      description: "Hold the answer's streaming state in the message surface and leave the surrounding row untouched.",
+      tree: `Message
+└── MessageContent
+    └── MessageBubble
+        └── StreamingResponse`,
     },
     lifecycle: [
       {
         title: "Receive",
-        description:
-          "Partial content enters the same semantic response container used by the final answer.",
+        description: "Partial content enters the same semantic response container used by the final answer.",
       },
       {
         title: "Render",
-        description:
-          "Markdown, links, lists, and code remain styled as the body grows.",
+        description: "Markdown, links, lists, and code remain styled as the body grows.",
       },
       {
         title: "Complete",
-        description:
-          "The settled answer reveals only the actions and sources that are now usable.",
+        description: "The settled answer reveals only the actions and sources that are now usable.",
       },
     ],
     principles: [
       {
         title: "Render real content",
-        description:
-          "Links, lists, code, and other rendered Markdown remain part of the response instead of being flattened into a streaming-only text effect.",
+        description: "Links, lists, code, and other rendered Markdown remain part of the response instead of being flattened into a streaming-only text effect.",
       },
       {
         title: "Separate phase from content",
-        description:
-          "Streaming state controls announcements and completion affordances without replacing the response body or adding a cursor artifact.",
+        description: "Streaming state controls announcements and completion affordances without replacing the response body or adding a cursor artifact.",
       },
       {
         title: "Reveal actions on completion",
-        description:
-          "Copy, retry, feedback, and sources appear only when they are meaningful, leaving the active response visually quiet.",
+        description: "Copy, retry, feedback, and sources appear only when they are meaningful, leaving the active response visually quiet.",
       },
     ],
     implementation: {
       title: "Stream source content, not presentation fragments",
-      description:
-        "Keep one canonical response value and pass its current slice through the same renderer used at completion. Swapping between separate streaming and final trees causes Markdown, links, and backgrounds to shift at the phase boundary.",
+      description: "Keep one canonical response value and pass its current slice through the same renderer used at completion. Swapping between separate streaming and final trees causes Markdown, links, and backgrounds to shift at the phase boundary.",
     },
     connections: [
       {
         slug: "message",
         name: "Message",
-        description: "Places the response in a stable assistant row.",
+        description: "Anchors the answer in an assistant row.",
       },
       {
         slug: "citations",
         name: "Citations",
-        description: "Connects completed claims to supporting sources.",
+        description: "Links finished claims to their sources.",
       },
       {
         slug: "code-block",
         name: "Code Block",
-        description: "Renders structured source inside a rich response.",
+        description: "Shows code blocks inside the answer.",
       },
     ],
     contract: {
       owns: "Response phase, rendered-content styling, completion actions, feedback state, and source disclosure.",
-      leaves:
-        "Token transport, Markdown parsing, retry implementation, and citation data to the application.",
+      leaves: "Token transport, Markdown parsing, retry implementation, and citation data to the application.",
     },
     guidance: {
-      useWhen:
-        "An assistant answer arrives incrementally and may finish with actions, feedback, or supporting sources.",
-      avoidWhen:
-        "The content is an opaque loading state, a structured tool event, or a short message with no response lifecycle.",
+      useWhen: "An assistant answer arrives incrementally and may finish with actions, feedback, or supporting sources.",
+      avoidWhen: "The content is an opaque loading state, a structured tool event, or a short message with no response lifecycle.",
     },
   },
   "image-generation": {
     seo: {
       title: "AI Image Generation Animation · React Component",
-      description:
-        "A React image-generation surface with stable aspect ratio, queued and refining states, progressive media reveal, completion feedback, and retry recovery.",
+      description: "React placeholder for AI-generated images: fixed aspect ratio, queued, generating and refining stages, a dithered progress field, a clean reveal and retry on error.",
     },
-    introduction:
-      "Generated media should occupy its final space before pixels are ready. The surface keeps one stable canvas while generation state progressively reveals the result, then settles into an ordinary image that remains easy to inspect.",
+    introduction: "Reserve the space for generated media before any pixels exist. One frame stays put while each stage brings the picture closer to finished, and at the end it is just a normal image people can look at closely.",
     composition: {
-      description:
-        "Place generated media inside the response row that owns its prompt and completion state.",
-      tree: "Message\n└── MessageContent\n    └── ImageGeneration\n        └── GeneratedMedia",
+      description: "Put the image in the assistant row that holds the prompt and knows when generation completes.",
+      tree: `Message
+└── MessageContent
+    └── ImageGeneration
+        └── GeneratedMedia`,
     },
     lifecycle: [
       {
         title: "Reserve",
-        description:
-          "The final aspect ratio is present before generated media becomes available.",
+        description: "The final aspect ratio is present before generated media becomes available.",
       },
       {
         title: "Resolve",
-        description:
-          "A single dither cluster responds to fine-pointer movement while the result resolves.",
+        description: "A single dither cluster responds to fine-pointer movement while the result resolves.",
       },
       {
         title: "Settle",
-        description:
-          "The veil and blur clear without remounting or resizing the completed image.",
+        description: "The veil and blur clear without remounting or resizing the completed image.",
       },
     ],
     principles: [
       {
         title: "Keep one canvas",
-        description:
-          "Generation phases update visual treatment inside a fixed aspect ratio so nearby transcript content never shifts.",
+        description: "Generation phases update visual treatment inside a fixed aspect ratio so nearby transcript content never shifts.",
       },
       {
         title: "Reveal progressively",
-        description:
-          "The responsive particle field, focus, and saturation communicate refinement without pretending to expose model progress as a percentage.",
+        description: "The responsive particle field, focus, and saturation communicate refinement without pretending to expose model progress as a percentage.",
       },
       {
         title: "Preserve the result",
-        description:
-          "Completion removes generation effects and leaves the supplied media as the primary, stable content.",
+        description: "Completion removes generation effects and leaves the supplied media as the primary, stable content.",
       },
     ],
     implementation: {
       title: "Keep generated media mounted across status changes",
-      description:
-        "Drive the veil and media treatment from generation status instead of replacing the canvas at every phase. Remounting can replay loading motion, flash the background, and shift the surrounding conversation.",
+      description: "Drive the veil and media treatment from generation status instead of replacing the canvas at every phase. Remounting can replay loading motion, flash the background, and shift the surrounding conversation.",
     },
     connections: [
       {
         slug: "message",
         name: "Message",
-        description: "Keeps the generated result attached to its assistant turn.",
+        description: "Ties the image to the assistant turn that made it.",
       },
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Carries accompanying text before or after the media result.",
+        description: "Carries the prose that comes with the image.",
       },
       {
         slug: "prompt-input",
         name: "Prompt Input",
-        description: "Collects the instruction that starts generation.",
+        description: "Takes the instruction that kicks off generation.",
       },
     ],
     contract: {
       owns: "Canvas geometry, generation-state presentation, progressive media reveal, status messaging, and retry affordance.",
-      leaves:
-        "Prompt submission, generation transport, progress interpretation, media loading, persistence, and moderation to the application.",
+      leaves: "Prompt submission, generation transport, progress interpretation, media loading, persistence, and moderation to the application.",
     },
     guidance: {
-      useWhen:
-        "Generated visual media needs a stable place in a conversation while work moves through queued, active, refining, complete, or failed states.",
-      avoidWhen:
-        "The result is already available, the media has no generation lifecycle, or the application needs an editable image workspace rather than a status surface.",
+      useWhen: "Generated visual media needs a stable place in a conversation while work moves through queued, active, refining, complete, or failed states.",
+      avoidWhen: "The result is already available, the media has no generation lifecycle, or the application needs an editable image workspace rather than a status surface.",
     },
   },
   "tool-approval": {
     seo: {
       title: "AI Tool Approval · React Component",
-      description:
-        "A React permission card for reviewing AI tool calls, allowing one execution, remembering access, or denying the requested action.",
+      description: "React permission prompt for AI tool calls: review parameters and code, then approve a single run, grant standing access or deny, and follow the call until it finishes.",
     },
-    introduction:
-      "Tool approval is a permission boundary. The person must understand what will run, what access it needs, and whether their choice applies once or changes future behavior.",
+    introduction: "Approving a tool draws a line around what the agent may do. People need to see what will execute, what it can touch, and whether saying yes covers this call only or every call after it.",
     composition: {
-      description:
-        "Place executable source inside the approval request when the decision depends on reviewing it.",
-      tree: "Message\n└── MessageContent\n    └── ToolApproval\n        └── ToolApprovalCode",
+      description: "When the choice depends on reading the code, show that code within the request itself.",
+      tree: `Message
+└── MessageContent
+    └── ToolApproval
+        └── ToolApprovalCode`,
     },
     lifecycle: [
       {
         title: "Inspect",
-        description:
-          "The pending card exposes the tool, command, target, and relevant risk context.",
+        description: "The pending card exposes the tool, command, target, and relevant risk context.",
       },
       {
         title: "Choose scope",
-        description:
-          "The person allows once, remembers access, or denies the requested execution.",
+        description: "The person allows once, remembers access, or denies the requested execution.",
       },
       {
         title: "Resolve",
-        description:
-          "The card records the permission outcome before the host decides what runs next.",
+        description: "The card records the permission outcome before the host decides what runs next.",
       },
     ],
     principles: [
       {
         title: "Name the action",
-        description:
-          "Show the tool, command, target, or request details before presenting the approval controls.",
+        description: "Show the tool, command, target, or request details before presenting the approval controls.",
       },
       {
         title: "Separate permission scope",
-        description:
-          "Allow once and remember access are different commitments. Their labels and outcomes should never be interchangeable.",
+        description: "Allow once and remember access are different commitments. Their labels and outcomes should never be interchangeable.",
       },
       {
         title: "Make denial complete",
-        description:
-          "Denying is a first-class outcome with the same clarity as approval, not a quiet dismissal of the card.",
+        description: "Denying is a first-class outcome with the same clarity as approval, not a quiet dismissal of the card.",
       },
     ],
     implementation: {
       title: "Return a permission decision, not a button event",
-      description:
-        "Model allow-once, remembered access, and denial as explicit outcomes. The host can then enforce scope consistently instead of inferring security policy from whichever control happened to fire.",
+      description: "Model allow-once, remembered access, and denial as explicit outcomes. The host can then enforce scope consistently instead of inferring security policy from whichever control happened to fire.",
     },
     connections: [
       {
         slug: "approval-card",
         name: "Approval Card",
-        description: "Handles broader questions and review decisions.",
+        description: "Takes on open questions and wider reviews.",
       },
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Shows the pending and resumed execution context.",
+        description: "Shows the run that is waiting and what resumes.",
       },
       {
         slug: "tool-result",
         name: "Tool Result",
-        description: "Displays the outcome after an approved tool runs.",
+        description: "Shows what the tool returned once it ran.",
       },
     ],
     contract: {
       owns: "Permission details, pending and resolved states, scope choices, and approval or denial controls.",
-      leaves:
-        "Security policy, credential access, tool execution, and remembered permissions to the host application.",
+      leaves: "Security policy, credential access, tool execution, and remembered permissions to the host application.",
     },
     guidance: {
-      useWhen:
-        "One tool call crosses a permission boundary and the person must review its exact scope before execution.",
-      avoidWhen:
-        "The workflow needs a product decision, clarification, or multi-step review rather than execution permission.",
+      useWhen: "One tool call crosses a permission boundary and the person must review its exact scope before execution.",
+      avoidWhen: "The workflow needs a product decision, clarification, or multi-step review rather than execution permission.",
     },
   },
   citations: {
     seo: {
       title: "AI Citations · React Component",
-      description:
-        "React citation components for grounded AI responses with inline reference markers, real source destinations, favicons, and a collapsible source list.",
+      description: "React citations for grounded AI answers: numbered inline markers, linked source rows with favicons and domains, and a list of references that opens and closes.",
     },
-    introduction:
-      "Citations connect a claim to supporting material without interrupting the answer. Inline markers should stay lightweight while the source collection provides enough information to inspect the evidence.",
+    introduction: "A citation ties one claim to its evidence and stays out of the reader's way. Markers in the text should be small; the source list carries enough detail for someone to go and check.",
     composition: {
-      description:
-        "Pair inline citation markers with a source disclosure owned by the same response.",
-      tree: "StreamingResponse\n├── Citation\n└── Citations\n    ├── CitationStack\n    └── CitationList",
+      description: "Keep the inline markers and the source list in the same answer so their ids match.",
+      tree: `StreamingResponse
+├── Citation
+└── Citations
+    ├── CitationStack
+    └── CitationList`,
     },
     lifecycle: [
       {
         title: "Mark the claim",
-        description:
-          "A compact inline reference stays attached to the statement it supports.",
+        description: "A compact inline reference stays attached to the statement it supports.",
       },
       {
         title: "Collect sources",
-        description:
-          "Repeated references resolve into a concise source summary below the response.",
+        description: "Repeated references resolve into a concise source summary below the response.",
       },
       {
         title: "Inspect evidence",
-        description:
-          "The disclosure opens real destinations without replacing or obscuring the answer.",
+        description: "The disclosure opens real destinations without replacing or obscuring the answer.",
       },
     ],
     principles: [
       {
         title: "Keep claims readable",
-        description:
-          "Markers sit with the relevant text and remain compact enough that they do not become the dominant visual element.",
+        description: "Markers sit with the relevant text and remain compact enough that they do not become the dominant visual element.",
       },
       {
         title: "Use real destinations",
-        description:
-          "Source labels, hosts, and favicons derive from the supplied URLs rather than a fixed catalog of known websites.",
+        description: "Source labels, hosts, and favicons derive from the supplied URLs rather than a fixed catalog of known websites.",
       },
       {
         title: "Disclose the collection",
-        description:
-          "A compact source summary opens into the complete list while preserving the response layout above it.",
+        description: "A compact source summary opens into the complete list while preserving the response layout above it.",
       },
     ],
     implementation: {
       title: "Use stable source identities",
-      description:
-        "Deduplicate citations by a normalized source id rather than their rendered index. Inline marker numbers may change as content streams, but the link between a claim and its destination must remain stable.",
+      description: "Deduplicate citations by a normalized source id rather than their rendered index. Inline marker numbers may change as content streams, but the link between a claim and its destination must remain stable.",
     },
     connections: [
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Reveals the source summary when the answer completes.",
+        description: "Opens the source summary after the answer finishes.",
       },
       {
         slug: "message",
         name: "Message",
-        description: "Keeps cited answers within a semantic conversation row.",
+        description: "Keeps the cited answer in a proper transcript row.",
       },
     ],
     contract: {
       owns: "Inline markers, source identity presentation, favicon resolution, and collection disclosure.",
-      leaves:
-        "Retrieval, ranking, citation correctness, and URL trust decisions to the application.",
+      leaves: "Retrieval, ranking, citation correctness, and URL trust decisions to the application.",
     },
     guidance: {
-      useWhen:
-        "A generated answer makes grounded claims that readers may need to verify against supplied URLs.",
-      avoidWhen:
-        "Links are ordinary navigation, sources cannot be tied to claims, or the application has not validated the destinations.",
+      useWhen: "A generated answer makes grounded claims that readers may need to verify against supplied URLs.",
+      avoidWhen: "Links are ordinary navigation, sources cannot be tied to claims, or the application has not validated the destinations.",
     },
   },
   "agent-activity": {
     seo: {
       title: "AI Agent Activity · React Component",
-      description:
-        "A React activity stream for AI agents that progressively renders reasoning, searches, tool calls, messages, and mixed execution events.",
+      description: "React feed for AI agent work: reasoning text, steps, tool calls, searches on the web and trace entries in order, collapsing to a short summary when the run ends.",
     },
-    introduction:
-      "Agent activity explains how work is progressing without exposing an unfiltered internal transcript. Events should arrive chronologically, remain easy to scan, and reduce to a useful summary when the run finishes.",
+    introduction: "Show people how the work is going without handing them the raw internal transcript. Events land in order, are quick to skim, and boil down to a short summary once the run is over.",
     composition: {
-      description:
-        "Render progressive work as message content so it remains attached to the turn that produced it.",
-      tree: "Message\n└── MessageContent\n    └── AgentActivity",
+      description: "Render the feed inside the message content of the turn that produced the work.",
+      tree: `Message
+└── MessageContent
+    └── AgentActivity`,
     },
     lifecycle: [
       {
         title: "Start with intent",
-        description:
-          "The active label explains the kind of work before the first event arrives.",
+        description: "The active label explains the kind of work before the first event arrives.",
       },
       {
         title: "Append evidence",
-        description:
-          "Reasoning, searches, tools, and messages enter in their true execution order.",
+        description: "Reasoning, searches, tools, and messages enter in their true execution order.",
       },
       {
         title: "Collapse the run",
-        description:
-          "Completion replaces the live label with a reopenable summary of recorded work.",
+        description: "Completion replaces the live label with a reopenable summary of recorded work.",
       },
     ],
     principles: [
       {
         title: "Begin at the beginning",
-        description:
-          "Reasoning, searches, messages, and tool calls append in execution order. A replay never appears to begin halfway through the run.",
+        description: "Reasoning, searches, messages, and tool calls append in execution order. A replay never appears to begin halfway through the run.",
       },
       {
         title: "Adapt to the event",
-        description:
-          "Freeform text, structured steps, search results, and tool calls keep their own readable shapes inside one shared disclosure.",
+        description: "Freeform text, structured steps, search results, and tool calls keep their own readable shapes inside one shared disclosure.",
       },
       {
         title: "Summarize completed work",
-        description:
-          "The active viewport follows new events, then collapses into a reopenable label that describes what actually happened.",
+        description: "The active viewport follows new events, then collapses into a reopenable label that describes what actually happened.",
       },
     ],
     implementation: {
       title: "Normalize events before rendering",
-      description:
-        "Convert transport-specific chunks into durable text, step, search, tool, and message events first. A shared chronological model lets mixed activity render consistently and prevents the UI from starting in the middle of a replay.",
+      description: "Convert transport-specific chunks into durable text, step, search, tool, and message events first. A shared chronological model lets mixed activity render consistently and prevents the UI from starting in the middle of a replay.",
     },
     connections: [
       {
         slug: "loading-states",
         name: "Agent Loading States",
-        description: "Covers the interval before the first structured event.",
+        description: "Fills the time before the first event arrives.",
       },
       {
         slug: "todo-list",
         name: "Todo List",
-        description: "Separates durable planned work from transient events.",
+        description: "Keeps planned tasks apart from passing events.",
       },
       {
         slug: "tool-result",
         name: "Tool Result",
-        description: "Expands one completed execution into inspectable output.",
+        description: "Opens one finished call into its full output.",
       },
     ],
     contract: {
       owns: "Chronological event presentation, live summary, bounded following, completion collapse, and replay behavior.",
-      leaves:
-        "Reasoning generation, event transport, tool execution, and trace storage to the agent runtime.",
+      leaves: "Reasoning generation, event transport, tool execution, and trace storage to the agent runtime.",
     },
     guidance: {
-      useWhen:
-        "A run contains multiple progressive events whose order and completion help explain what the agent is doing.",
-      avoidWhen:
-        "You only need a simple wait signal, a durable task plan, or the final output from one tool invocation.",
+      useWhen: "A run contains multiple progressive events whose order and completion help explain what the agent is doing.",
+      avoidWhen: "You only need a simple wait signal, a durable task plan, or the final output from one tool invocation.",
     },
   },
   "loading-states": {
     seo: {
       title: "AI Agent Loading States · React Components",
-      description:
-        "Animated React loading states for AI agents with readable thinking shimmer, elapsed progress, and reasoning phrases that respect reduced motion.",
+      description: "React loading indicators for AI agents: a shimmering status line, an elapsed-time progress row and rotating reasoning phrases, all reduced-motion aware.",
     },
-    introduction:
-      "An agent loading state should communicate ongoing work without inventing progress. Choose the smallest signal that matches what the system actually knows and keep its language stable while work continues.",
+    introduction: "A busy indicator should say work is happening without faking how far along it is. Pick the lightest signal the system can back up with what it really knows, and keep the wording steady until the state changes.",
     composition: {
-      description:
-        "Choose one loading primitive for the amount of progress information the agent can truthfully expose.",
-      tree: "Message\n└── MessageContent\n    ├── ThinkingShimmer\n    ├── AgentProgress\n    └── ReasoningText",
+      description: "Pick the primitive that shows only as much progress as the agent can honestly report.",
+      tree: `Message
+└── MessageContent
+    ├── ThinkingShimmer
+    ├── AgentProgress
+    └── ReasoningText`,
     },
     lifecycle: [
       {
         title: "Signal",
-        description:
-          "A truthful label appears immediately when work begins or the interface must wait.",
+        description: "A truthful label appears immediately when work begins or the interface must wait.",
       },
       {
         title: "Sustain",
-        description:
-          "Quiet motion confirms activity without implying unavailable progress or steps.",
+        description: "Quiet motion confirms activity without implying unavailable progress or steps.",
       },
       {
         title: "Resolve",
-        description:
-          "The indicator leaves cleanly when content, an error, or a richer progress state replaces it.",
+        description: "The indicator leaves cleanly when content, an error, or a richer progress state replaces it.",
       },
     ],
     principles: [
       {
         title: "Match the available signal",
-        description:
-          "Use a shimmer for an unknown wait, elapsed time for sustained work, and changing phrases only when the label reflects a real stage.",
+        description: "Use a shimmer for an unknown wait, elapsed time for sustained work, and changing phrases only when the label reflects a real stage.",
       },
       {
         title: "Keep motion secondary",
-        description:
-          "Animation confirms activity but never makes the status harder to read. Reduced motion keeps the same meaning with a calmer treatment.",
+        description: "Animation confirms activity but never makes the status harder to read. Reduced motion keeps the same meaning with a calmer treatment.",
       },
       {
         title: "Avoid false precision",
-        description:
-          "Do not show percentages, steps, or promises that the underlying process cannot measure reliably.",
+        description: "Do not show percentages, steps, or promises that the underlying process cannot measure reliably.",
       },
     ],
     implementation: {
       title: "Choose labels from known state",
-      description:
-        "A phrase such as “Searching” should come from an actual stage or event, not a decorative timer. When only elapsed work is known, keep the language general and let motion communicate continued activity.",
+      description: "A phrase such as “Searching” should come from an actual stage or event, not a decorative timer. When only elapsed work is known, keep the language general and let motion communicate continued activity.",
     },
     connections: [
       {
         slug: "agent-activity",
         name: "Agent Activity",
-        description: "Takes over once structured execution events exist.",
+        description: "Takes over as soon as real events stream in.",
       },
       {
         slug: "todo-list",
         name: "Todo List",
-        description: "Shows durable progress when a plan becomes available.",
+        description: "Shows concrete progress once a plan exists.",
       },
       {
         slug: "streaming-response",
         name: "Streaming Response",
-        description: "Replaces loading once answer content begins arriving.",
+        description: "Steps in when the first words of the answer appear.",
       },
     ],
     contract: {
       owns: "Readable activity signals, elapsed presentation, phrase transitions, and reduced-motion behavior.",
-      leaves:
-        "Progress calculation, stage selection, timeout policy, and cancellation to the application.",
+      leaves: "Progress calculation, stage selection, timeout policy, and cancellation to the application.",
     },
     guidance: {
-      useWhen:
-        "The interface knows work is active but has little or no structured progress to display yet.",
-      avoidWhen:
-        "Real tasks, execution events, elapsed stages, or tool output are available and can communicate progress more honestly.",
+      useWhen: "The interface knows work is active but has little or no structured progress to display yet.",
+      avoidWhen: "Real tasks, execution events, elapsed stages, or tool output are available and can communicate progress more honestly.",
     },
   },
   "voice-input": {

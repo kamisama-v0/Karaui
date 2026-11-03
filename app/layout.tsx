@@ -23,9 +23,9 @@ import { JsonLd } from "@/components/app/analytics/json-ld";
 import { getGithubStarCount } from "@/lib/github";
 import {
   AUTHOR,
+  HOME_TITLE,
   SITE_DESCRIPTION,
   SITE_NAME,
-  SITE_TITLE,
   siteJsonLd,
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: SITE_NAME,
   title: {
-    default: `${SITE_TITLE} · karaUI`,
+    default: HOME_TITLE,
     template: "%s · karaUI",
   },
   description: SITE_DESCRIPTION,
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: `${SITE_TITLE} · karaUI`,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     type: "website",
     url: "/",
@@ -114,17 +114,22 @@ export const metadata: Metadata = {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: `${SITE_TITLE} · karaUI`,
+        alt: HOME_TITLE,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_TITLE} · karaUI`,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/api/og"],
   },
   keywords: [
+    "AI agent UI components",
+    "AI chat components for React",
+    "React app blocks",
+    "landing page blocks",
+    "Tailwind design styles",
     "React motion components",
     "best motion components",
     "free motion components",

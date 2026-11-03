@@ -8,15 +8,15 @@ export function WorkCta() {
     <section className="px-4 py-24 md:py-36">
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
         <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Work with me
+          Hire the author
         </p>
 
         <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground md:text-5xl md:leading-[1.1]">
-          Need components built for your product?
+          Want a custom piece like these?
         </h2>
         <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground">
-          Custom motion components and frontend systems, built to spec. Drop a
-          line and tell me what you need.
+          I take on contract work building custom React components and
+          front-end systems to a brief. Email a short description of the project.
         </p>
 
         <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">

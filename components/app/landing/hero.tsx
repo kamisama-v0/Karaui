@@ -8,7 +8,7 @@ import { RainbowCta } from "@/components/app/rainbow-cta";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { INSTALLABLE_COUNT } from "@/lib/registry";
 
-const HEADLINE = ["Animated components", "for React and Next.js"];
+const HEADLINE = ["React UI for AI agents,", "apps and landing pages"];
 const HEADLINE_WORDS = HEADLINE.reduce((n, l) => n + l.split(" ").length, 0);
 const STAGGER = 0.09;
 const START = 0.12;
@@ -47,8 +47,9 @@ export function Hero() {
       />
 
       <p className="mx-auto mt-6 max-w-md text-pretty text-base leading-7 text-muted-foreground">
-        Copy-paste React components built with Motion and Tailwind CSS. Free,
-        open source, and fully customizable.
+        Chat and agent controls, full app screens and the primitives behind
+        them, installed as source with the shadcn CLI. Pick one of 10 design
+        styles; each has light and dark modes.
       </p>
 
       <motion.div
@@ -62,7 +63,7 @@ export function Hero() {
           shape="pill"
           innerClassName="px-4"
         >
-          Browse components
+          Explore the catalog
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </RainbowCta>
         <PressLink

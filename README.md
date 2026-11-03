@@ -7,7 +7,8 @@
 <h1 align="center">karaUI v2</h1>
 
 <p align="center">
-  Animated components for React and Next.js. Copy the source, own the code.
+  React UI for AI agents, apps and landing pages: agent interface components, app and landing blocks,<br />
+  motion primitives and 10 switchable design styles. Copy the source, own the code.
 </p>
 
 <p align="center">

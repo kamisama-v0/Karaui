@@ -4,14 +4,14 @@ import { MotionPatterns } from "./motion-patterns";
 export const metadata: Metadata = {
   title: "Motion Guides",
   description:
-    "Practical motion guidance for React interfaces: when to animate, which karaUI token to use, timing ranges, reduced motion, and copy-ready patterns.",
+    "How karaUI decides what moves: four questions to ask first, the easing and spring tokens in lib/ease.ts, duration ranges, five React recipes and the reduced-motion variant.",
   alternates: {
     canonical: "/docs/motion-patterns",
   },
   openGraph: {
     title: "Motion Guides · karaUI",
     description:
-      "Practical guidance for purposeful animation, timing, easing, springs, and accessible motion in React interfaces.",
+      "The rules behind karaUI's animation: when to move, which token to reach for, how long it should take, and what reduced motion keeps.",
     url: "/docs/motion-patterns",
     type: "article",
     siteName: "karaUI",
@@ -28,15 +28,15 @@ export default function MotionPatternsPage() {
   return (
     <div className="w-full">
       <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-        karaUI motion system
+        How karaUI moves
       </p>
       <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-        Motion that explains, not distracts.
+        Animate with a reason.
       </h1>
       <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-        A practical guide to deciding when something should move, choosing the
-        right token, and shipping motion that stays fast, coherent, and
-        accessible.
+        The checklist we use inside karaUI: ask whether an element should move
+        at all, pick its curve from the shared tokens, keep it short, and write
+        the reduced-motion version at the same time.
       </p>
 
       <MotionPatterns />

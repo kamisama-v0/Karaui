@@ -11,10 +11,16 @@ import { SITE_URL } from "@/lib/site";
 
 export const SITE = SITE_URL;
 export const SITE_NAME = "karaUI";
-export const SITE_TITLE = "Animated Components for React and Next.js";
-export const SITE_TAGLINE = "Animated components for React and Next.js";
-export const SITE_DESCRIPTION =
-  "Free, open-source animated components for React and Next.js, built with Motion and Tailwind CSS. Copy the source or install with the shadcn CLI.";
+const countOf = (slug: string) =>
+  registry.find((c) => c.slug === slug)?.components.length ?? 0;
+/** Rounded down to the nearest ten so copy reads "60+" rather than "62". */
+const atLeast = (n: number) => `${Math.floor(n / 10) * 10}+`;
+
+export const SITE_TITLE = "AI Agent UI, App Blocks, Animated React Components";
+/** Homepage <title>: brand first, then what the kit covers (≤ 60 chars). */
+export const HOME_TITLE = `karaUI: ${SITE_TITLE}`;
+export const SITE_TAGLINE = "React UI for AI agents, apps and landing pages";
+export const SITE_DESCRIPTION = `Open-source React kit: ${countOf("agents")} AI agent components, ${atLeast(countOf("blocks"))} app and landing blocks, motion primitives and 10 design styles. Install with shadcn.`;
 export const AUTHOR = "kara";
 
 const abs = (path: string) => (path.startsWith("http") ? path : `${SITE}${path}`);
@@ -66,14 +72,15 @@ export function componentKeywords(
 }
 
 /**
- * Meta/social description for a component: its own description plus a short,
- * keyword-bearing positioning tail. The on-page copy keeps the bare
+ * Meta/social description for a component: its own description plus a short
+ * tail naming the library and install path. Registry descriptions already run
+ * past ~160 chars, so the tail stays brief. The on-page copy keeps the bare
  * description; only the SERP/social snippet carries the tail.
  */
 export function componentMetaDescription(comp: ComponentEntry): string {
   if (comp.guide?.seo.description) return comp.guide.seo.description;
 
-  return `${comp.description} Free, open-source React and Next.js motion component. Copy-paste the source or install with shadcn.`;
+  return `${comp.description} MIT-licensed React from karaUI; add it via shadcn.`;
 }
 
 /** Trim text to `limit` chars on a word boundary — for fixed-size surfaces
@@ -111,7 +118,7 @@ export function siteJsonLd(): JsonLdSchema[] {
       "@type": "SoftwareApplication",
       "@id": `${SITE}/#app`,
       name: SITE_NAME,
-      alternateName: "karaUI animated components",
+      alternateName: "karaUI React components",
       slogan: SITE_TAGLINE,
       description: SITE_DESCRIPTION,
       url: SITE,

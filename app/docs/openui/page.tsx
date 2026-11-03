@@ -5,9 +5,9 @@ import { JsonLd } from "@/components/app/analytics/json-ld";
 import { CodeBlock } from "@/components/app/docs/code-block";
 import { breadcrumbJsonLd, docsArticleJsonLd } from "@/lib/seo";
 
-const PAGE_TITLE = "OpenUI integration guide";
+const PAGE_TITLE = "Generative UI with OpenUI and karaUI";
 const PAGE_DESCRIPTION =
-  "Build an OpenUI React integration with karaUI. Register animated components, generate the system prompt, stream OpenUI Lang, and render interactive UI.";
+  "Let a model answer with real karaUI components: define them for OpenUI, build the prompt spec, stream OpenUI Lang from your API and render it in React.";
 const PAGE_PATH = "/docs/openui";
 const PAGE_IMAGE = "/api/og?page=openui&v=2";
 
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: PAGE_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Use karaUI with OpenUI",
+        alt: "Generative UI with OpenUI and karaUI",
       },
     ],
   },
@@ -34,18 +34,18 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${PAGE_TITLE} · karaUI`,
     description: PAGE_DESCRIPTION,
-    images: [{ url: PAGE_IMAGE, alt: "Use karaUI with OpenUI" }],
+    images: [{ url: PAGE_IMAGE, alt: "Generative UI with OpenUI and karaUI" }],
   },
 };
 
-const INSTALL_SNIPPET = `# OpenUI runtime, server prompt generation, and schema validation
+const INSTALL_SNIPPET = `# Renderer, prompt builder and the Zod schemas
 npm install @openuidev/react-lang @openuidev/lang-core zod
 
-# Your model SDK (any provider works)
+# A model client; OpenAI is only the example here
 npm install openai
 
-# Pull the karaUI components you want to expose (@karaui is in
-# shadcn's public registry directory, no components.json setup needed)
+# The karaUI pieces the model may use (the CLI resolves @karaui
+# through shadcn's registry directory, no config file edits)
 npx shadcn@latest add @karaui/button @karaui/animated-badge @karaui/animated-number`;
 
 const DEFINE_SNIPPET = `import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
@@ -54,13 +54,13 @@ import { Button } from "@/components/motion/button";
 import { AnimatedBadge } from "@/components/motion/animated-badge";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 
-// karaUI Button — the model picks a variant and an optional press ripple.
-// \`useTriggerAction\` keeps it live: pressing it sends \`action\` back to the
-// model, so generated buttons continue the conversation instead of sitting inert.
-const BeButton = defineComponent({
+// The model chooses the label, a variant and whether to ripple on press.
+// Clicking calls \`useTriggerAction\` with \`action\`, which goes back to the
+// model as the next user turn, so the button actually does something.
+const KaraButton = defineComponent({
   name: "Button",
   description:
-    "Spring-pressed action button. \`action\` is the message sent to the model when pressed.",
+    "Primary action. When clicked, \`action\` is sent to the model as a new message.",
   props: z.object({
     label: z.string(),
     action: z.string(),
@@ -81,11 +81,11 @@ const BeButton = defineComponent({
   },
 });
 
-// karaUI status pill with a pulse and animated state icon.
-const BeBadge = defineComponent({
+// AnimatedBadge: a colored status chip; pulse marks something still running.
+const KaraBadge = defineComponent({
   name: "Badge",
   description:
-    "Status pill. Pick a status colour; set pulse for live or in-progress states.",
+    "Short status label. Choose a status; turn on pulse while work is ongoing.",
   props: z.object({
     label: z.string(),
     status: z
@@ -100,10 +100,10 @@ const BeBadge = defineComponent({
   ),
 });
 
-// karaUI spring count-up for a single metric.
-const BeStat = defineComponent({
+// AnimatedNumber inside a small card, for one headline figure.
+const KaraStat = defineComponent({
   name: "Stat",
-  description: "A single numeric metric that springs up from zero when shown.",
+  description: "One labelled number that counts up when it appears.",
   props: z.object({ label: z.string(), value: z.number() }),
   component: ({ props }) => (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -113,15 +113,15 @@ const BeStat = defineComponent({
   ),
 });
 
-// The root node stacks the components above. Describe its children as a union
-// of each component's \`.ref\` (declared after the components exist): the runtime
-// validates what may nest here, and the model sees exactly which nodes are
-// allowed inside — both of which \`z.any()\` would throw away.
-const StackChild = z.union([BeButton.ref, BeBadge.ref, BeStat.ref]);
+// Root container. Its children are typed as a union of the \`.ref\` of each
+// component above (so it has to come after them). That lets the runtime reject
+// anything else and tells the model what it may put inside; \`z.any()\` would
+// give up both.
+const StackChild = z.union([KaraButton.ref, KaraBadge.ref, KaraStat.ref]);
 
 const Stack = defineComponent({
   name: "Stack",
-  description: "Vertical container. Children stack top to bottom with spacing.",
+  description: "Column layout; children render in order with a gap.",
   props: z.object({ children: z.array(StackChild) }),
   component: ({ props, renderNode }) => (
     <div className="flex flex-col gap-3">{renderNode(props.children)}</div>
@@ -132,19 +132,19 @@ const LIBRARY_SNIPPET = `import { createLibrary } from "@openuidev/react-lang";
 
 export const karauiLibrary = createLibrary({
   root: "Stack",
-  components: [Stack, BeButton, BeBadge, BeStat],
+  components: [Stack, KaraButton, KaraBadge, KaraStat],
   componentGroups: [
     {
       name: "Layout",
       components: ["Stack"],
-      notes: ["Every response is a single Stack at the root."],
+      notes: ["Wrap the whole answer in one Stack."],
     },
     {
       name: "karaUI motion",
       components: ["Button", "Badge", "Stat"],
       notes: [
-        "Use Badge with pulse for live or streaming status.",
-        "One Button per response, as the primary action.",
+        "Turn on Badge pulse only for work that is still running.",
+        "Offer at most one Button per answer.",
       ],
     },
   ],
@@ -156,7 +156,7 @@ import karauiLibrarySpec from "@/lib/generated/karaui-library.spec.json";
 
 const openai = new OpenAI();
 
-// The generated library spec teaches the model which OpenUI Lang it may emit.
+// The spec JSON (built by the CLI) lists what the model is allowed to output.
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
@@ -164,8 +164,8 @@ export async function POST(req: Request) {
     model: "gpt-5.6-sol",
     stream: true,
     store: false,
-    // Grammar + a signature and description for every registered component,
-    // so the model only ever emits nodes your library defines.
+    // OpenUI Lang syntax plus each component's props and description, which
+    // keeps the model inside your library.
     instructions: generateSystemPrompt({ library: karauiLibrarySpec }),
     input: messages,
   });
@@ -197,7 +197,7 @@ const RENDER_SNIPPET = `"use client";
 import { Renderer } from "@openuidev/react-lang";
 import { karauiLibrary } from "@/lib/karaui-library";
 
-// \`response\` is the OpenUI Lang your server streams from the model.
+// \`response\` holds the OpenUI Lang text received so far from your route.
 export function GenerativeResponse({
   response,
   isStreaming,
@@ -212,8 +212,7 @@ export function GenerativeResponse({
       response={response}
       library={karauiLibrary}
       isStreaming={isStreaming}
-      // A registered Button was pressed — send its message back to the
-      // model to continue the conversation.
+      // Fired by a generated Button; forward its message as the next turn.
       onAction={(event) => onSend(event.humanFriendlyMessage)}
     />
   );
@@ -223,17 +222,17 @@ const RESOURCES: { label: string; url: string; desc: string }[] = [
   {
     label: "OpenUI",
     url: "https://www.openui.com",
-    desc: "The generative UI framework and its OpenUI Lang.",
+    desc: "Project home, with the OpenUI Lang spec.",
   },
   {
     label: "Defining components",
     url: "https://www.openui.com/docs/openui-lang/defining-components",
-    desc: "Full defineComponent / createLibrary reference.",
+    desc: "API docs for defineComponent and createLibrary.",
   },
   {
     label: "shadcn chat example",
     url: "https://www.openui.com/docs/openui-lang/examples/shadcn-chat",
-    desc: "The registry-library pattern this guide follows.",
+    desc: "OpenUI's own example of wrapping shadcn components; this guide is modelled on it.",
   },
 ];
 
@@ -266,7 +265,7 @@ export default function OpenUIPage() {
         Integration
       </p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-        Use karaUI with OpenUI
+        Generative UI with OpenUI and karaUI
       </h1>
       <p className="mt-3 text-muted-foreground">
         <Link
@@ -277,38 +276,38 @@ export default function OpenUIPage() {
         >
           OpenUI
         </Link>{" "}
-        is a generative UI framework: instead of returning markdown, the model
-        emits an abstract UI tree (OpenUI Lang) and a React runtime maps every
-        node to a component <em>you</em> register. This OpenUI React integration
-        turns karaUI into a custom OpenUI component library, so each generated
-        response uses real, animated components—and only the components you
-        allow.
+        lets a model reply with interface instead of text. It writes a compact
+        markup called OpenUI Lang, and a React renderer swaps each node for a
+        component from a list <em>you</em> control. This guide fills that list
+        with karaUI pieces, so a chat answer can contain a working button, a
+        status badge or a counting metric, and nothing you did not approve.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
         Install
       </h2>
       <p className="mt-2 text-muted-foreground">
-        You need OpenUI&apos;s React runtime and the karaUI components you want to
-        expose. Pull karaUI source with the shadcn registry (see the{" "}
+        Add the OpenUI packages, a model client, and whichever karaUI
+        components the model should be able to use. The shadcn CLI copies their
+        source into your project (the{" "}
         <Link
           href="/docs/ai-agents"
           className="text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground"
         >
           AI Agents
         </Link>{" "}
-        guide for other install paths).
+        page lists other ways to install).
       </p>
       <div className="mt-4">
         <CodeBlock code={INSTALL_SNIPPET} lang="bash" filename="terminal" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        Scaffolding from scratch? Run{" "}
+        Starting with an empty repo?{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           npx @openuidev/cli@latest create
         </code>{" "}
-        for a working streaming app, then swap its default library for the karaUI
-        one below.
+        gives you a streaming chat app to begin with; replace its built-in
+        library with the one built on this page.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
@@ -318,25 +317,26 @@ export default function OpenUIPage() {
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           defineComponent
         </code>{" "}
-        maps one OpenUI Lang node to a karaUI component. The Zod{" "}
+        ties one OpenUI Lang node name to one React component. Its Zod{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           props
         </code>{" "}
-        schema validates the model&apos;s output as it streams, the{" "}
+        schema checks each node while it streams in; the{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           description
         </code>{" "}
-        is injected into the system prompt so the model learns each
-        component&apos;s intent, and{" "}
+        text ends up in the system prompt and tells the model when to use the
+        component; and{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           useTriggerAction
         </code>{" "}
-        keeps rendered controls interactive. Describe a container&apos;s children
-        as a union of the registered{" "}
+        is how a rendered control reports a click. For containers, type the
+        children as a union of the other components&apos;{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           .ref
         </code>{" "}
-        schemas so nesting is both validated and advertised to the model.
+        schemas; the renderer then enforces what can go inside, and the
+        prompt spells it out for the model.
       </p>
       <div className="mt-4">
         <CodeBlock code={DEFINE_SNIPPET} lang="tsx" filename="lib/karaui-library.tsx" />
@@ -349,15 +349,15 @@ export default function OpenUIPage() {
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           createLibrary
         </code>{" "}
-        collects the definitions, names the{" "}
+        bundles the definitions together, sets which one is the{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           root
         </code>{" "}
-        node, and organises the prompt into{" "}
+        and lets you split the prompt into{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           componentGroups
         </code>{" "}
-        with notes that steer how the model reaches for each one.
+        with short usage notes the model reads alongside each group.
       </p>
       <div className="mt-4">
         <CodeBlock code={LIBRARY_SNIPPET} lang="tsx" filename="lib/karaui-library.tsx" />
@@ -367,26 +367,28 @@ export default function OpenUIPage() {
         Generate the prompt
       </h2>
       <p className="mt-2 text-muted-foreground">
-        The client renders OpenUI Lang, but the model has to produce it. In the
-        CLI, call{" "}
+        The browser only displays OpenUI Lang; the model still needs to learn
+        how to write it. Build a spec file with{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           npx @openuidev/cli@latest generate --spec ./lib/karaui-library.tsx --out ./lib/generated/karaui-library.spec.json
         </code>{" "}
-        to build the library spec. The backend combines its component
-        signatures, descriptions, and nesting constraints with the OpenUI Lang
-        grammar, then streams the model&apos;s reply back to the browser.
+        and pass it to{" "}
+        <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
+          generateSystemPrompt
+        </code>{" "}
+        in an API route. The route below sends that prompt with the chat
+        history and pipes the text deltas straight to the client.
       </p>
       <div className="mt-4">
         <CodeBlock code={PROMPT_SNIPPET} lang="tsx" filename="app/api/generate/route.ts" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        Run that command when the library changes. It serializes the library to
-        JSON at build time, and the route imports that generated file through
-        the same{" "}
+        Re-run the generate command whenever you edit the library. Because the
+        route only imports the JSON file from{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           @/lib/generated
-        </code>{" "}
-        path, so the server bundle never imports your client components.
+        </code>
+        , your client components stay out of the server bundle.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
@@ -397,26 +399,27 @@ export default function OpenUIPage() {
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           &lt;Renderer&gt;
         </code>{" "}
-        on the client. It parses the OpenUI Lang your server streams and paints
-        karaUI components progressively as tokens arrive. Wire{" "}
+        in a client component. It reads the partial OpenUI Lang as it arrives
+        and mounts the matching karaUI components one by one. Hook up{" "}
         <code className="rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-xs text-foreground">
           onAction
         </code>{" "}
-        to send a pressed button&apos;s message back to the model and continue
-        the loop.
+        so a click on a generated button becomes the next message to the
+        model.
       </p>
       <div className="mt-4">
         <CodeBlock code={RENDER_SNIPPET} lang="tsx" filename="generative-response.tsx" />
       </div>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
-        Why karaUI fits
+        Why this works well with karaUI
       </h2>
       <p className="mt-2 text-muted-foreground">
-        karaUI components own their files and ship through the registry, so
-        there&apos;s no runtime to bolt on — the library above <em>is</em> the
-        integration. They use semantic controls and shadcn tokens, so
-        model-generated UIs inherit the host app&apos;s theme without extra wiring.
+        The components are plain source files in your repo, not a package
+        with its own runtime, so the definitions above are all the glue you
+        need. Their colors come from shadcn variables, which means whatever the
+        model generates already matches your app&apos;s theme and the design
+        style you picked.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold tracking-tight text-foreground">
@@ -444,8 +447,8 @@ export default function OpenUIPage() {
         ))}
       </ul>
       <p className="mt-6 text-sm text-muted-foreground">
-        Other generative UI frameworks that consume shadcn registries can pull
-        karaUI the same way — more integration guides to come.
+        Any generative UI tool that installs from a shadcn registry can use
+        karaUI in the same way.
       </p>
     </>
   );

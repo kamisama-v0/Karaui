@@ -60,13 +60,13 @@ export async function GET(request: Request) {
     component?.name ??
     category?.name ??
     page?.title ??
-    "Animated components for React and Next.js";
+    "React UI for AI agents, apps and landing pages";
   const description = clampText(
     post?.description ??
       component?.description ??
       category?.description ??
       page?.description ??
-      "Free, open-source React components built with Motion and Tailwind CSS.",
+      "Agent components, app blocks and motion primitives you install as source.",
     OG_DESCRIPTION_LIMIT,
   );
   const label = post
