@@ -81,11 +81,7 @@ export async function GET(request: Request) {
     : component
       ? `npx shadcn add @karaui/${component.slug}`
       : page?.command ?? "npx shadcn add @karaui/...";
-  const origin = requestUrl.origin;
-  const [fonts, assets] = await Promise.all([
-    getOgFonts(origin),
-    getOgAssets(origin),
-  ]);
+  const [fonts, assets] = await Promise.all([getOgFonts(), getOgAssets()]);
 
   return new ImageResponse(
     ogImage({ title, description, label, command, ...assets }),
